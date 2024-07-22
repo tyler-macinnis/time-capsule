@@ -1,0 +1,23 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    uses: ./.github/workflows/build.yml
+    with:
+      os: windows-latest
+      artifact_name: Release-Windows
+
+  build-macos:
+    uses: ./.github/workflows/build.yml
+    with:
+      os: macos-latest
+      artifact_name: Release-macOS
+
+  build-linux:
+    uses: ./.github/workflows/build.yml
+    with:
+      os: ubuntu-latest
+      artifact_name: Release-Linux
