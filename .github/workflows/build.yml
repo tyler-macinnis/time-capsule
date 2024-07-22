@@ -37,5 +37,3 @@ jobs:
           name: ${{ inputs.artifact_name }}
           path: |
             dist/**/*.exe
-            dist/**/*.dmg
-            dist/**/*.AppImage
