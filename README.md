@@ -41,7 +41,8 @@ Application to help you track important dates and milestones.
    pip install -r requirements.txt
    ```
 
-6. **Run the Application**  
+6. **Run the Application**
+
    Start the application with:
 
    ```bash
@@ -71,3 +72,7 @@ To build a Windows executable, run the following command from within the virtual
 ```bash
 python build_release.py
 ```
+
+## Attribution
+
+[Dose icons created by Pixel perfect - Flaticon](https://www.flaticon.com/free-icons/dose "dose icons")

@@ -102,7 +102,10 @@ def show_about():
         "1. Use the 'Add Date' button to add a new event.\n"
         "2. Double-click an event to edit it.\n"
         "3. Use the search bar to filter events by name or notes.\n"
-        "4. Use the 'Export to CSV' and 'Import from CSV' buttons to back up and restore your data.\n"
+        "4. Use the 'Export to CSV' and 'Import from CSV' buttons to back up and restore your data.\n\n"
+        "Icon Attribution:\n"
+        "Dose icons created by Pixel perfect - Flaticon\n"
+        "For more information, see the README.md file.\n"
     )
     about_window = ctk.CTkToplevel(root)
     about_window.title("About")
