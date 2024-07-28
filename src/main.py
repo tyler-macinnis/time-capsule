@@ -8,11 +8,11 @@ import customtkinter as ctk
 from tkcalendar import DateEntry
 
 # Constants
+APP_NAME = "Time Capsule"  # You can change this to any of the suggested names
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATES_FILE = os.path.join(SCRIPT_DIR, "important_dates.json")
 DATE_FORMAT = "%m-%d-%Y"  # Updated date format
-VERSION = "1.0.0"
-APP_NAME = "Time Capsule"  # You can change this to any of the suggested names
+VERSION = "1.0.1"
 
 
 def load_dates():
@@ -49,26 +49,34 @@ def add_date(event=None, date_str=None, note=None, mode="Add"):
     add_date_window = ctk.CTkToplevel(root)
     add_date_window.title(f"{mode} Date")
     add_date_window.geometry("400x450")
+    add_date_window.minsize(400, 450)  # Set minimum window size
     add_date_window.transient(root)
     add_date_window.grab_set()
 
+    # Configure grid layout
+    add_date_window.columnconfigure(0, weight=1)
+    add_date_window.rowconfigure(1, weight=1)
+    add_date_window.rowconfigure(3, weight=2)
+
     ctk.CTkLabel(
         add_date_window, text="Enter the event name:", font=("Arial", 12)
-    ).pack(pady=10)
+    ).grid(row=0, column=0, pady=10, padx=10, sticky="w")
     event_entry = ctk.CTkEntry(add_date_window, font=("Arial", 12))
-    event_entry.pack(pady=5)
+    event_entry.grid(row=1, column=0, pady=5, padx=10, sticky="ew")
 
-    ctk.CTkLabel(add_date_window, text="Enter the date:", font=("Arial", 12)).pack(
-        pady=10
+    ctk.CTkLabel(add_date_window, text="Enter the date:", font=("Arial", 12)).grid(
+        row=2, column=0, pady=10, padx=10, sticky="w"
     )
     date_entry = DateEntry(
         add_date_window, font=("Arial", 12), date_pattern="mm-dd-yyyy"
     )
-    date_entry.pack(pady=5)
+    date_entry.grid(row=3, column=0, pady=5, padx=10, sticky="ew")
 
-    ctk.CTkLabel(add_date_window, text="Notes:", font=("Arial", 12)).pack(pady=10)
+    ctk.CTkLabel(add_date_window, text="Notes:", font=("Arial", 12)).grid(
+        row=4, column=0, pady=10, padx=10, sticky="w"
+    )
     notes_entry = ctk.CTkTextbox(add_date_window, height=100, font=("Arial", 12))
-    notes_entry.pack(pady=5)
+    notes_entry.grid(row=5, column=0, pady=5, padx=10, sticky="nsew")
 
     if event:
         event_entry.insert(0, event)
@@ -77,7 +85,9 @@ def add_date(event=None, date_str=None, note=None, mode="Add"):
         if note:
             notes_entry.insert("1.0", note)
 
-    ctk.CTkButton(add_date_window, text="Save", command=save_event).pack(pady=20)
+    ctk.CTkButton(add_date_window, text="Save", command=save_event).grid(
+        row=6, column=0, pady=20
+    )
 
 
 def refresh_dates_list():
@@ -110,6 +120,7 @@ def show_about():
     about_window = ctk.CTkToplevel(root)
     about_window.title("About")
     about_window.geometry("600x500")  # Set the size of the window
+    about_window.minsize(600, 500)
     about_window.transient(root)
     about_window.grab_set()
     text_widget = ctk.CTkTextbox(about_window, wrap="word", font=("Arial", 12))
@@ -230,6 +241,7 @@ def main():
     root = ctk.CTk()
     root.title(f"{APP_NAME} v{VERSION}")
     root.geometry("900x600")  # Set initial size
+    root.minsize(900, 600)  # Set minimum window size
     root.columnconfigure(0, weight=1)
     root.rowconfigure(1, weight=1)
 
