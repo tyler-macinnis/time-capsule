@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Security in case of vulnerabilities.
 
+## [1.0.2] - 2024-07-28
+
+### Added in 1.0.2
+
+- Improved the way that "time since" is calculated.
+
 ## [1.0.1] - 2024-07-28
 
 ### Fixed in 1.0.1

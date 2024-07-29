@@ -3,4 +3,5 @@ pillow==10.4.0
 pipdeptree==2.23.1
 pur==7.3.2
 pyinstaller==6.9.0
+python-dateutil==2.9.0.post0
 tkcalendar==1.6.1

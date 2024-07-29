@@ -5,6 +5,7 @@ from datetime import datetime
 from tkinter import messagebox, ttk
 
 import customtkinter as ctk
+from dateutil.relativedelta import relativedelta
 from tkcalendar import DateEntry
 
 # Constants
@@ -12,7 +13,7 @@ APP_NAME = "Time Capsule"  # You can change this to any of the suggested names
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATES_FILE = os.path.join(SCRIPT_DIR, "important_dates.json")
 DATE_FORMAT = "%m-%d-%Y"  # Updated date format
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 
 
 def load_dates():
@@ -31,6 +32,20 @@ def load_dates():
 def save_dates(dates):
     with open(DATES_FILE, "w") as file:
         json.dump(dates, file, indent=4)
+
+
+def calculate_time_since(start_date):
+    now = datetime.now()
+    start = datetime.strptime(start_date, DATE_FORMAT)
+    delta = relativedelta(now, start)
+    parts = []
+    if delta.years:
+        parts.append(f"{delta.years} year{'s' if delta.years > 1 else ''}")
+    if delta.months:
+        parts.append(f"{delta.months} month{'s' if delta.months > 1 else ''}")
+    if delta.days:
+        parts.append(f"{delta.days} day{'s' if delta.days > 1 else ''}")
+    return ", ".join(parts) or "0 days"
 
 
 def add_date(event=None, date_str=None, note=None, mode="Add"):
@@ -97,11 +112,8 @@ def refresh_dates_list():
         date_str = info["date"]
         notes = info["notes"]
         if search_text in event.lower() or search_text in notes.lower():
-            date = datetime.strptime(date_str, DATE_FORMAT)
-            days_since = (datetime.now() - date).days
-            dates_listbox.insert(
-                "", "end", values=(event, date_str, f"{days_since} days ago", notes)
-            )
+            time_since = calculate_time_since(date_str)
+            dates_listbox.insert("", "end", values=(event, date_str, time_since, notes))
 
 
 def show_about():
@@ -260,7 +272,7 @@ def main():
     style.theme_use("clam")  # Using 'clam' as it is easily customizable
 
     # Create and pack the Treeview
-    columns = ("Event", "Date", "Days Since", "Notes")
+    columns = ("Event", "Date", "Time Since", "Notes")
     dates_listbox = ttk.Treeview(root, columns=columns, show="headings")
     for col in columns:
         dates_listbox.heading(
