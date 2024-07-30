@@ -163,4 +163,5 @@ cython_debug/
 
 #### PROJECT SPECIFIC ####
 important_dates.json
+categories.json
 NOTES.txt
