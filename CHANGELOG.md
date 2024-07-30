@@ -31,6 +31,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Security in case of vulnerabilities.
 
+## [1.1.0] - 2024-07-30
+
+### Added in 1.1.0
+
+- Added support for categories.
+
+### Changed in 1.1.0
+
+- Moved buttons to the left side of the GUI.
+
 ## [1.0.2] - 2024-07-28
 
 ### Added in 1.0.2
