@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Security in case of vulnerabilities.
 
+## [1.1.1] - 2024-08-01
+
+### Fixed in 1.1.1
+
+- Added necessary hidden import for tkcalender. See [here](https://tkcalendar.readthedocs.io/en/stable/howtos.html#pyinstaller) for more info.
+
 ## [1.1.0] - 2024-07-30
 
 ### Added in 1.1.0

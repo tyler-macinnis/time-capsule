@@ -14,7 +14,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATES_FILE = os.path.join(SCRIPT_DIR, "important_dates.json")
 CATEGORIES_FILE = os.path.join(SCRIPT_DIR, "categories.json")
 DATE_FORMAT = "%m-%d-%Y"
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 
 
 def load_dates():
