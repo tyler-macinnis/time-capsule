@@ -10,11 +10,15 @@ from tkcalendar import DateEntry
 
 # Constants
 APP_NAME = "Time Capsule"
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+if getattr(sys, 'frozen', False):
+    SCRIPT_DIR = os.path.dirname(sys.executable)
+else:
+    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 DATES_FILE = os.path.join(SCRIPT_DIR, "important_dates.json")
 CATEGORIES_FILE = os.path.join(SCRIPT_DIR, "categories.json")
 DATE_FORMAT = "%m-%d-%Y"
-VERSION = "1.1.1"
+VERSION = "1.1.2"
 
 
 def load_dates():
