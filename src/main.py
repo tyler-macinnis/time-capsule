@@ -1,6 +1,7 @@
 import csv
 import json
 import os
+import sys
 from datetime import datetime
 from tkinter import colorchooser, messagebox, ttk
 
@@ -10,7 +11,7 @@ from tkcalendar import DateEntry
 
 # Constants
 APP_NAME = "Time Capsule"
-if getattr(sys, 'frozen', False):
+if getattr(sys, "frozen", False):
     SCRIPT_DIR = os.path.dirname(sys.executable)
 else:
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
