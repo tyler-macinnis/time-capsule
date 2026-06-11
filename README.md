@@ -76,6 +76,26 @@ python build_release.py
 The executable is written to `dist/Time Capsule.exe`. Data files (`memories.json`,
 `settings.json`, and the `photos/` folder) are created next to the executable.
 
+## Publish a Release
+
+Releases are fully automated by [.github/workflows/release.yml](.github/workflows/release.yml):
+
+1. Bump `VERSION` in [src/timecapsule/\_\_init\_\_.py](src/timecapsule/__init__.py).
+2. Add a matching `## [x.y.z] - YYYY-MM-DD` entry to [CHANGELOG.md](CHANGELOG.md).
+3. Either push a tag or trigger the workflow manually:
+
+   ```bash
+   git tag v2.0.0
+   git push origin v2.0.0
+   ```
+
+   Or run the **Release** workflow from the GitHub Actions tab and enter the version.
+
+The workflow verifies the version matches the app, runs the smoke tests, builds the
+executable, extracts the release notes from the changelog, and publishes a GitHub
+Release with the `.exe` attached. Every push to `main` is also smoke-tested and built
+by [.github/workflows/ci.yml](.github/workflows/ci.yml).
+
 ## Attribution
 
 [Dose icons created by Pixel perfect - Flaticon](https://www.flaticon.com/free-icons/dose "dose icons")
