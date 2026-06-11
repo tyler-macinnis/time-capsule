@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Time Capsule user data (created beside the app at runtime)
+src/memories.json
+src/settings.json
+src/photos/
+src/*.bak
+
 # C extensions
 *.so
 
@@ -164,3 +170,6 @@ cython_debug/
 #### PROJECT SPECIFIC ####
 important_dates.json
 categories.json
+
+# Github
+/.github/instructions
