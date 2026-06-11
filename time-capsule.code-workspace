@@ -1,0 +1,34 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "[python]": {
+            "editor.defaultFormatter": "charliermarsh.ruff",
+            "editor.formatOnSave": false, // Can be set to true
+            "editor.codeActionsOnSave": {
+                "source.fixAll": "explicit",
+                "source.organizeImports": "explicit"
+            }
+        },
+        "ruff.fixAll": true,
+        "ruff.organizeImports": true,
+        "ruff.configuration": {
+            "unsafe-fixes": false // Set to true if you want to allow fixes that may change code behavior
+        },
+        "[markdown]": {
+            "editor.codeActionsOnSave": {
+                "source.fixAll.markdownlint": "explicit"
+            }
+        }
+    },
+    "extensions": {
+        "recommendations": [
+            "charliermarsh.ruff",
+            "DavidAnson.vscode-markdownlint"
+            // "usernamehw.errorlens",
+        ]
+    }
+}

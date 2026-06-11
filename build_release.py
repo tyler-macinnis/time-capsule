@@ -1,13 +1,23 @@
-import PyInstaller.__main__
+"""Build a single-file Windows executable with `flet pack` (PyInstaller)."""
 
-PyInstaller.__main__.run(
+import subprocess
+import sys
+
+subprocess.run(
     [
+        sys.executable,
+        "-m",
+        "flet.cli",
+        "pack",
         "src/main.py",
-        "--onefile",
-        "--hidden-import",
-        "babel.numbers",
-        "--windowed",
-        "--name=Time Capsule",
-        "--icon=res/time.png",
-    ]
+        "--name",
+        "Time Capsule",
+        "--icon",
+        "res/time.ico",
+        "--add-data",
+        "res;res",
+        "--product-name",
+        "Time Capsule",
+    ],
+    check=True,
 )

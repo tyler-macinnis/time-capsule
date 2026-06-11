@@ -1,6 +1,18 @@
 # Time Capsule
 
-Application to help you track important dates and milestones.
+A memory journal for the moments that matter: a photo-rich timeline of your story,
+an "On This Day" greeting at every launch, and a love-stats dashboard.
+
+## Features
+
+- **Timeline** — memories grouped by year with notes, categories, photos, and "time since"
+- **Gallery** — every photo in one grid, with a full-size viewer
+- **Stats** — days together, milestones, memories by category, upcoming anniversaries
+- **On This Day** — a surprise greeting when a memory's anniversary is today
+- **Photos** — attach any number of pictures to a memory; thumbnails are generated automatically
+- **CSV** — export and import memories with proper file dialogs
+- **Migration** — v1 `important_dates.json` and `categories.json` are converted automatically
+  on first launch (originals kept as `.bak`)
 
 ## Setup Instructions
 
@@ -49,21 +61,9 @@ Application to help you track important dates and milestones.
    python src/main.py
    ```
 
-## Update `requirements.txt`
-
-To update `requirements.txt`, run the following command from within the virtual environment:
-
-```bash
-pipdeptree --warn silence > requirements.txt
-```
-
 ## Update Dependencies
 
-Dependencies can be updated using `pur`. Run the following command within the virtual environment:
-
-```bash
-pur
-```
+Dependencies are pinned in [requirements.txt](requirements.txt). Update versions there as needed.
 
 ## Build a Windows Executable
 
@@ -72,6 +72,9 @@ To build a Windows executable, run the following command from within the virtual
 ```bash
 python build_release.py
 ```
+
+The executable is written to `dist/Time Capsule.exe`. Data files (`memories.json`,
+`settings.json`, and the `photos/` folder) are created next to the executable.
 
 ## Attribution
 
