@@ -209,7 +209,7 @@ class MemoryDialog:
             self.memory.notes = self.notes_field.value.strip()
             self.memory.category = self.category_dd.value or ""
             self.memory.photos = self.photos
-            self.state.save()
+            self.state.update(self.memory)
         else:
             self.state.add(
                 Memory.new(

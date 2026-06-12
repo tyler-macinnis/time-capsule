@@ -3,11 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Time Capsule user data (created beside the app at runtime)
+# Time Capsule user data (legacy pre-3.0 files created beside the app)
 src/memories.json
 src/settings.json
 src/photos/
 src/*.bak
+
+# Inno Setup output
+installer/Output/
 
 # C extensions
 *.so

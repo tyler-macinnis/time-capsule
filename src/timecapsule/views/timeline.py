@@ -16,9 +16,11 @@ from ..utils import time_since
 
 def _thumb_strip(memory: Memory) -> ft.Control | None:
     thumbs = []
+    shown = 0
     for name in memory.photos[:4]:
         path = storage.thumb_path(name)
         if os.path.exists(path):
+            shown += 1
             thumbs.append(
                 ft.Image(
                     src=path,
@@ -30,7 +32,7 @@ def _thumb_strip(memory: Memory) -> ft.Control | None:
             )
     if not thumbs:
         return None
-    extra = len(memory.photos) - 4
+    extra = len(memory.photos) - shown
     if extra > 0:
         thumbs.append(
             ft.Container(

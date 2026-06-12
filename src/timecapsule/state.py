@@ -1,4 +1,4 @@
-"""Application state: in-memory store with persistence."""
+"""Application state: in-memory cache backed by the SQLite database."""
 
 from __future__ import annotations
 
@@ -6,12 +6,15 @@ from datetime import date
 
 from . import storage
 from .models import Memory
+from .storage import Database
 
 
 class AppState:
-    def __init__(self) -> None:
-        self.memories, self.categories = storage.load_store()
-        self.settings = storage.load_settings()
+    def __init__(self, db: Database | None = None) -> None:
+        self.db = db or Database()
+        self.memories = self.db.list_memories()
+        self.categories = self.db.categories()
+        self.settings = self.db.get_settings()
         self.search = ""
 
     # ------------------------------------------------------------- queries
@@ -42,34 +45,35 @@ class AppState:
 
     # ----------------------------------------------------------- mutations
 
-    def save(self) -> None:
-        storage.save_store(self.memories, self.categories)
-
     def add(self, memory: Memory) -> None:
         self.memories.append(memory)
-        self.save()
+        self.db.upsert_memory(memory)
+
+    def update(self, memory: Memory) -> None:
+        self.db.upsert_memory(memory)
 
     def remove(self, memory: Memory) -> None:
         for photo in memory.photos:
             storage.delete_photo(photo)
         self.memories = [m for m in self.memories if m.id != memory.id]
-        self.save()
+        self.db.delete_memory(memory.id)
 
     def set_category(self, name: str, color: str) -> None:
         self.categories[name] = color
-        self.save()
+        self.db.set_category(name, color)
 
     def remove_category(self, name: str) -> None:
         self.categories.pop(name, None)
         for m in self.memories:
             if m.category == name:
                 m.category = ""
-        self.save()
+        self.db.delete_category(name)
 
     # ------------------------------------------------------------ settings
 
-    def save_settings(self) -> None:
-        storage.save_settings(self.settings)
+    def set_setting(self, key: str, value: str) -> None:
+        self.settings[key] = value
+        self.db.set_setting(key, value)
 
     @property
     def anchor_date(self) -> date | None:
@@ -83,5 +87,4 @@ class AppState:
 
     @anchor_date.setter
     def anchor_date(self, value: date) -> None:
-        self.settings["relationship_start"] = value.isoformat()
-        self.save_settings()
+        self.set_setting("relationship_start", value.isoformat())

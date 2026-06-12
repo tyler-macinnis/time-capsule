@@ -1,44 +1,45 @@
-"""Persistence: JSON storage, settings, photo import, and v1 migration."""
+"""Persistence: SQLite database in AppData plus photo file storage."""
 
 from __future__ import annotations
 
-import json
 import os
 import shutil
+import sqlite3
 import sys
 import uuid
-from datetime import datetime
+from datetime import date
 
 from PIL import Image
 
 from .models import Memory
 
-if getattr(sys, "frozen", False):
-    SCRIPT_DIR = os.path.dirname(sys.executable)
-else:
-    # src/ directory, same place v1 kept its data
-    SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SCHEMA_VERSION = 1
 
-MEMORIES_FILE = os.path.join(SCRIPT_DIR, "memories.json")
-SETTINGS_FILE = os.path.join(SCRIPT_DIR, "settings.json")
-PHOTOS_DIR = os.path.join(SCRIPT_DIR, "photos")
+
+def _default_app_dir() -> str:
+    """Per-user data directory: %APPDATA%\\TimeCapsule on Windows."""
+    base = os.environ.get("APPDATA") or os.path.join(os.path.expanduser("~"), ".config")
+    return os.path.join(base, "TimeCapsule")
+
+
+APP_DIR = _default_app_dir()
+DB_FILE = os.path.join(APP_DIR, "timecapsule.db")
+PHOTOS_DIR = os.path.join(APP_DIR, "photos")
 THUMBS_DIR = os.path.join(PHOTOS_DIR, "thumbs")
 
 # Bundled resources (res/ at the repo root in dev, _MEIPASS when frozen)
 if getattr(sys, "frozen", False):
-    RES_DIR = os.path.join(getattr(sys, "_MEIPASS", SCRIPT_DIR), "res")
+    RES_DIR = os.path.join(
+        getattr(sys, "_MEIPASS", os.path.dirname(sys.executable)), "res"
+    )
 else:
-    RES_DIR = os.path.join(os.path.dirname(SCRIPT_DIR), "res")
+    _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    RES_DIR = os.path.join(os.path.dirname(_SRC_DIR), "res")
 
 
 def res_path(name: str) -> str:
     return os.path.join(RES_DIR, name)
 
-
-# Legacy v1 files
-LEGACY_DATES_FILE = os.path.join(SCRIPT_DIR, "important_dates.json")
-LEGACY_CATEGORIES_FILE = os.path.join(SCRIPT_DIR, "categories.json")
-LEGACY_DATE_FORMAT = "%m-%d-%Y"
 
 THUMB_SIZE = (320, 320)
 
@@ -49,94 +50,162 @@ DEFAULT_CATEGORIES = {
 }
 
 
-# ---------------------------------------------------------------- settings
+_SCHEMA = """
+CREATE TABLE IF NOT EXISTS memories (
+    id          TEXT PRIMARY KEY,
+    title       TEXT NOT NULL,
+    day         TEXT NOT NULL,
+    notes       TEXT NOT NULL DEFAULT '',
+    category    TEXT NOT NULL DEFAULT '',
+    created_at  TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS photos (
+    name       TEXT PRIMARY KEY,
+    memory_id  TEXT NOT NULL REFERENCES memories(id) ON DELETE CASCADE,
+    position   INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_photos_memory ON photos(memory_id);
+
+CREATE TABLE IF NOT EXISTS categories (
+    name   TEXT PRIMARY KEY,
+    color  TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS settings (
+    key    TEXT PRIMARY KEY,
+    value  TEXT NOT NULL
+);
+"""
 
 
-def load_settings() -> dict:
-    try:
-        with open(SETTINGS_FILE, "r", encoding="utf-8") as fh:
-            return json.load(fh)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {}
+class Database:
+    """All reads and writes go through one WAL-mode SQLite connection."""
 
+    def __init__(self, path: str | None = None) -> None:
+        self.path = path or DB_FILE
+        os.makedirs(os.path.dirname(self.path), exist_ok=True)
+        self._conn = sqlite3.connect(self.path)
+        self._conn.row_factory = sqlite3.Row
+        self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.execute("PRAGMA foreign_keys=ON")
+        self._init_schema()
 
-def save_settings(settings: dict) -> None:
-    with open(SETTINGS_FILE, "w", encoding="utf-8") as fh:
-        json.dump(settings, fh, indent=4)
+    def _init_schema(self) -> None:
+        with self._conn:
+            self._conn.executescript(_SCHEMA)
+            version = self._conn.execute("PRAGMA user_version").fetchone()[0]
+            if version == 0:
+                has_categories = self._conn.execute(
+                    "SELECT COUNT(*) FROM categories"
+                ).fetchone()[0]
+                if not has_categories:
+                    self._conn.executemany(
+                        "INSERT INTO categories (name, color) VALUES (?, ?)",
+                        DEFAULT_CATEGORIES.items(),
+                    )
+                self._conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
 
+    def close(self) -> None:
+        self._conn.close()
 
-# ---------------------------------------------------------------- memories
+    # ------------------------------------------------------------ memories
 
-
-def load_store() -> tuple[list[Memory], dict[str, str]]:
-    """Load memories and categories, migrating v1 data if needed."""
-    if not os.path.exists(MEMORIES_FILE) and os.path.exists(LEGACY_DATES_FILE):
-        _migrate_v1()
-    try:
-        with open(MEMORIES_FILE, "r", encoding="utf-8") as fh:
-            data = json.load(fh)
-    except (FileNotFoundError, json.JSONDecodeError):
-        data = {"memories": [], "categories": dict(DEFAULT_CATEGORIES)}
-    memories = [Memory.from_dict(m) for m in data.get("memories", [])]
-    categories = data.get("categories", {}) or dict(DEFAULT_CATEGORIES)
-    return memories, categories
-
-
-def save_store(memories: list[Memory], categories: dict[str, str]) -> None:
-    data = {
-        "schema": 2,
-        "memories": [m.to_dict() for m in memories],
-        "categories": categories,
-    }
-    tmp = MEMORIES_FILE + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as fh:
-        json.dump(data, fh, indent=4)
-    os.replace(tmp, MEMORIES_FILE)
-
-
-# ---------------------------------------------------------------- migration
-
-
-def _migrate_v1() -> None:
-    """Convert v1 important_dates.json/categories.json into memories.json."""
-    try:
-        with open(LEGACY_DATES_FILE, "r", encoding="utf-8") as fh:
-            old_dates = json.load(fh)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return
-
-    categories: dict[str, str] = {}
-    try:
-        with open(LEGACY_CATEGORIES_FILE, "r", encoding="utf-8") as fh:
-            categories = json.load(fh)
-    except (FileNotFoundError, json.JSONDecodeError):
-        pass
-
-    memories: list[Memory] = []
-    for name, value in old_dates.items():
-        if isinstance(value, str):  # very old single-string format
-            value = {"date": value, "notes": "", "category": ""}
-        try:
-            day = datetime.strptime(value["date"], LEGACY_DATE_FORMAT).date()
-        except (KeyError, ValueError):
-            continue
-        memories.append(
-            Memory.new(
-                title=name,
-                day=day,
-                notes=value.get("notes", ""),
-                category=value.get("category", ""),
+    def list_memories(self) -> list[Memory]:
+        rows = self._conn.execute(
+            "SELECT id, title, day, notes, category, created_at FROM memories"
+        ).fetchall()
+        photo_rows = self._conn.execute(
+            "SELECT name, memory_id FROM photos ORDER BY memory_id, position"
+        ).fetchall()
+        photos: dict[str, list[str]] = {}
+        for p in photo_rows:
+            photos.setdefault(p["memory_id"], []).append(p["name"])
+        return [
+            Memory(
+                id=r["id"],
+                title=r["title"],
+                day=date.fromisoformat(r["day"]),
+                notes=r["notes"],
+                category=r["category"],
+                photos=photos.get(r["id"], []),
+                created_at=r["created_at"],
             )
-        )
+            for r in rows
+        ]
 
-    if not categories:
-        categories = dict(DEFAULT_CATEGORIES)
-    save_store(memories, categories)
+    def upsert_memory(self, memory: Memory) -> None:
+        with self._conn:
+            self._conn.execute(
+                """
+                INSERT INTO memories (id, title, day, notes, category, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    title = excluded.title,
+                    day = excluded.day,
+                    notes = excluded.notes,
+                    category = excluded.category
+                """,
+                (
+                    memory.id,
+                    memory.title,
+                    memory.day.isoformat(),
+                    memory.notes,
+                    memory.category,
+                    memory.created_at,
+                ),
+            )
+            self._conn.execute(
+                "DELETE FROM photos WHERE memory_id = ?", (memory.id,)
+            )
+            self._conn.executemany(
+                "INSERT INTO photos (name, memory_id, position) VALUES (?, ?, ?)",
+                [(name, memory.id, i) for i, name in enumerate(memory.photos)],
+            )
 
-    # Back up originals so v1 files don't shadow-edit silently
-    shutil.move(LEGACY_DATES_FILE, LEGACY_DATES_FILE + ".bak")
-    if os.path.exists(LEGACY_CATEGORIES_FILE):
-        shutil.move(LEGACY_CATEGORIES_FILE, LEGACY_CATEGORIES_FILE + ".bak")
+    def delete_memory(self, memory_id: str) -> None:
+        with self._conn:
+            self._conn.execute("DELETE FROM memories WHERE id = ?", (memory_id,))
+
+    # ---------------------------------------------------------- categories
+
+    def categories(self) -> dict[str, str]:
+        rows = self._conn.execute("SELECT name, color FROM categories ORDER BY name")
+        return {r["name"]: r["color"] for r in rows}
+
+    def set_category(self, name: str, color: str) -> None:
+        with self._conn:
+            self._conn.execute(
+                """
+                INSERT INTO categories (name, color) VALUES (?, ?)
+                ON CONFLICT(name) DO UPDATE SET color = excluded.color
+                """,
+                (name, color),
+            )
+
+    def delete_category(self, name: str) -> None:
+        with self._conn:
+            self._conn.execute("DELETE FROM categories WHERE name = ?", (name,))
+            self._conn.execute(
+                "UPDATE memories SET category = '' WHERE category = ?", (name,)
+            )
+
+    # ------------------------------------------------------------ settings
+
+    def get_settings(self) -> dict[str, str]:
+        rows = self._conn.execute("SELECT key, value FROM settings")
+        return {r["key"]: r["value"] for r in rows}
+
+    def set_setting(self, key: str, value: str) -> None:
+        with self._conn:
+            self._conn.execute(
+                """
+                INSERT INTO settings (key, value) VALUES (?, ?)
+                ON CONFLICT(key) DO UPDATE SET value = excluded.value
+                """,
+                (key, value),
+            )
 
 
 # ---------------------------------------------------------------- photos

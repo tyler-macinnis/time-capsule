@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-06-12
+
+> **Breaking change**: data is now stored in a SQLite database under
+> `%APPDATA%\TimeCapsule`. Data from earlier versions (`memories.json`,
+> `important_dates.json`, `settings.json`) is **not** migrated — 3.0.0 starts
+> fresh. Re-enter memories manually or bring them over with CSV import.
+
+### Added in 3.0.0
+
+- SQLite storage (`%APPDATA%\TimeCapsule\timecapsule.db`) with WAL journaling,
+  foreign-key enforcement, and a versioned schema for future migrations.
+- Windows installer built with Inno Setup: per-user install (no admin prompt),
+  Start menu and optional desktop shortcuts, clean uninstall that preserves data.
+- Update check on startup and a "Check for updates" menu item: compares the
+  running version against the latest GitHub release and offers to open the
+  download page. Silent on network failure; disable with the `update_check`
+  setting.
+- `docs/` folder with a user guide and troubleshooting guide.
+
+### Changed in 3.0.0
+
+- App data (database and photos) now lives in `%APPDATA%\TimeCapsule` instead
+  of next to the executable.
+- Settings moved from `settings.json` into the database.
+- Release builds now produce both the installer and a portable `.exe`.
+- Timeline photo strip now shows an accurate "+N" count when some thumbnails
+  are missing from disk.
+
+### Removed in 3.0.0
+
+- JSON storage (`memories.json`, `settings.json`) and the automatic v1
+  migration of `important_dates.json`/`categories.json`.
+
 ## [2.0.1] - 2026-06-12
 
 ### Fixed in 2.0.1
