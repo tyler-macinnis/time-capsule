@@ -99,7 +99,7 @@ def memory_card(
         bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
         ink=True,
         on_click=lambda _: on_open(memory),
-        animate=ft.animation.Animation(200, ft.AnimationCurve.EASE_OUT),
+        animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
     )
 
 
