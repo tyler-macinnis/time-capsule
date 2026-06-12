@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-06-12
+
+### Fixed in 2.0.1
+
+- Fixed startup error on Windows (`module 'flet' has no attribute 'animation'`) by
+  using `ft.Animation` directly, as required by flet 0.28.x.
+
 ## [2.0.0] - 2026-06-11
 
 ### Added in 2.0.0

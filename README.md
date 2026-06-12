@@ -85,8 +85,8 @@ Releases are fully automated by [.github/workflows/release.yml](.github/workflow
 3. Either push a tag or trigger the workflow manually:
 
    ```bash
-   git tag v2.0.0
-   git push origin v2.0.0
+   git tag v2.0.1
+   git push origin v2.0.1
    ```
 
    Or run the **Release** workflow from the GitHub Actions tab and enter the version.
