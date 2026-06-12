@@ -3,6 +3,11 @@
 A memory journal for the moments that matter: a photo-rich timeline of your story,
 an "On This Day" greeting at every launch, and a love-stats dashboard.
 
+## Documentation
+
+- [User guide](docs/user-guide.md) — installing, updating, and using every feature
+- [Troubleshooting](docs/troubleshooting.md) — data locations, backup/restore, common fixes
+
 ## Features
 
 - **Timeline** — memories grouped by year with notes, categories, photos, and "time since"
@@ -11,8 +16,15 @@ an "On This Day" greeting at every launch, and a love-stats dashboard.
 - **On This Day** — a surprise greeting when a memory's anniversary is today
 - **Photos** — attach any number of pictures to a memory; thumbnails are generated automatically
 - **CSV** — export and import memories with proper file dialogs
-- **Migration** — v1 `important_dates.json` and `categories.json` are converted automatically
-  on first launch (originals kept as `.bak`)
+- **SQLite storage** — all data in a per-user database under `%APPDATA%\TimeCapsule`
+- **Installer & updates** — per-user Inno Setup installer (no admin) and a built-in
+  update check against GitHub releases
+
+## Installing (users)
+
+Download and run `TimeCapsule-Setup-<version>.exe` from the
+[latest release](https://github.com/tyler-macinnis/time-capsule/releases/latest).
+See the [user guide](docs/user-guide.md) for details.
 
 ## Setup Instructions
 
@@ -67,14 +79,21 @@ Dependencies are pinned in [requirements.txt](requirements.txt). Update versions
 
 ## Build a Windows Executable
 
-To build a Windows executable, run the following command from within the virtual environment:
+To build a Windows executable (and the installer, if Inno Setup is present), run the
+following command from within the virtual environment:
 
 ```bash
 python build_release.py
 ```
 
-The executable is written to `dist/Time Capsule.exe`. Data files (`memories.json`,
-`settings.json`, and the `photos/` folder) are created next to the executable.
+The portable executable is written to `dist/Time Capsule.exe`. If
+[Inno Setup 6](https://jrsoftware.org/isinfo.php) is installed, the installer is
+also compiled to `dist/TimeCapsule-Setup-<version>.exe` from
+[installer/timecapsule.iss](installer/timecapsule.iss); otherwise that step is
+skipped with a notice.
+
+App data (the SQLite database and the `photos/` folder) lives in
+`%APPDATA%\TimeCapsule`, regardless of where the executable runs from.
 
 ## Publish a Release
 
@@ -85,16 +104,16 @@ Releases are fully automated by [.github/workflows/release.yml](.github/workflow
 3. Either push a tag or trigger the workflow manually:
 
    ```bash
-   git tag v2.0.1
-   git push origin v2.0.1
+   git tag v3.0.0
+   git push origin v3.0.0
    ```
 
    Or run the **Release** workflow from the GitHub Actions tab and enter the version.
 
 The workflow verifies the version matches the app, runs the smoke tests, builds the
-executable, extracts the release notes from the changelog, and publishes a GitHub
-Release with the `.exe` attached. Every push to `main` is also smoke-tested and built
-by [.github/workflows/ci.yml](.github/workflows/ci.yml).
+executable and installer, extracts the release notes from the changelog, and publishes
+a GitHub Release with the installer and portable `.exe` attached. Every push to `main`
+is also smoke-tested and built by [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
 ## Attribution
 

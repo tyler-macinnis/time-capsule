@@ -97,4 +97,5 @@ jobs:
           gh release create $tag `
             --title "Time Capsule $version" `
             --notes-file release_notes.md `
-            "dist/Time Capsule.exe#Time.Capsule.$version.exe"
+            "dist/TimeCapsule-Setup-$version.exe#TimeCapsule-Setup-$version.exe" `
+            "dist/Time Capsule.exe#Time.Capsule.$version.portable.exe"

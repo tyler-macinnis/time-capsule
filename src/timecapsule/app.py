@@ -1,14 +1,15 @@
-"""Application shell: navigation, search, CSV, and wiring."""
+"""Application shell: navigation, search, CSV, updates, and wiring."""
 
 from __future__ import annotations
 
 import csv
 import os
+import webbrowser
 from datetime import date, datetime
 
 import flet as ft
 
-from . import APP_NAME, VERSION
+from . import APP_NAME, VERSION, updates
 from .models import Memory
 from .state import AppState
 from .storage import res_path
@@ -116,6 +117,11 @@ class TimeCapsuleApp:
                         ),
                         ft.PopupMenuItem(),
                         ft.PopupMenuItem(
+                            text="Check for updates",
+                            icon=ft.Icons.SYSTEM_UPDATE_ALT,
+                            on_click=lambda _: self._manual_update_check(),
+                        ),
+                        ft.PopupMenuItem(
                             text="Export to CSV",
                             icon=ft.Icons.UPLOAD_FILE,
                             on_click=lambda _: self.export_picker.save_file(
@@ -159,6 +165,8 @@ class TimeCapsuleApp:
         )
         self.refresh()
         maybe_show_dialog(page, self.state)
+        if self.state.settings.get("update_check", "on") != "off":
+            page.run_thread(self._startup_update_check)
 
     # ------------------------------------------------------------ rendering
 
@@ -189,8 +197,7 @@ class TimeCapsuleApp:
 
     def _toggle_theme(self, _) -> None:
         mode = "light" if self.page.theme_mode == ft.ThemeMode.DARK else "dark"
-        self.state.settings["theme_mode"] = mode
-        self.state.save_settings()
+        self.state.set_setting("theme_mode", mode)
         self.page.theme_mode = (
             ft.ThemeMode.LIGHT if mode == "light" else ft.ThemeMode.DARK
         )
@@ -237,6 +244,48 @@ class TimeCapsuleApp:
     def _snack(self, message: str) -> None:
         self.page.open(ft.SnackBar(ft.Text(message)))
 
+    # -------------------------------------------------------------- updates
+
+    def _startup_update_check(self) -> None:
+        latest = updates.fetch_latest_version()
+        if latest and updates.is_newer(latest):
+            self._show_update_dialog(latest)
+
+    def _manual_update_check(self) -> None:
+        self._snack("Checking for updates…")
+        self.page.run_thread(self._manual_update_check_worker)
+
+    def _manual_update_check_worker(self) -> None:
+        latest = updates.fetch_latest_version()
+        if latest is None:
+            self._snack("Could not reach GitHub to check for updates")
+        elif updates.is_newer(latest):
+            self._show_update_dialog(latest)
+        else:
+            self._snack(f"You're up to date (v{VERSION})")
+
+    def _show_update_dialog(self, latest: str) -> None:
+        dlg = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Update available"),
+            content=ft.Text(
+                f"Time Capsule {latest.lstrip('v')} is available — "
+                f"you have v{VERSION}.\n\n"
+                "Download the new installer from GitHub?"
+            ),
+            actions=[
+                ft.TextButton("Later", on_click=lambda _: self.page.close(dlg)),
+                ft.FilledButton(
+                    "Download",
+                    on_click=lambda _: (
+                        webbrowser.open(updates.RELEASES_PAGE),
+                        self.page.close(dlg),
+                    ),
+                ),
+            ],
+        )
+        self.page.open(dlg)
+
     # ------------------------------------------------------------------ CSV
 
     def _export_csv(self, e: ft.FilePickerResultEvent) -> None:
@@ -262,7 +311,7 @@ class TimeCapsuleApp:
                     if not title or day is None:
                         skipped += 1
                         continue
-                    self.state.memories.append(
+                    self.state.add(
                         Memory.new(
                             title=title,
                             day=day,
@@ -275,7 +324,6 @@ class TimeCapsuleApp:
             self._snack("Could not read that CSV file")
             return
         if added:
-            self.state.save()
             self.refresh()
         self._snack(f"Imported {added} memories" + (f", skipped {skipped}" if skipped else ""))
 

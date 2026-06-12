@@ -99,8 +99,7 @@ class ThemeDialog:
 
     def _set_color(self, color: str) -> None:
         set_accent(color)
-        self.state.settings["accent"] = color
-        self.state.save_settings()
+        self.state.set_setting("accent", color)
         apply_theme(self.page)
         self.hex_field.value = color
         self.hex_field.error_text = None
@@ -120,8 +119,7 @@ class ThemeDialog:
 
     def _mode_changed(self, e: ft.ControlEvent) -> None:
         mode = e.control.value
-        self.state.settings["theme_mode"] = mode
-        self.state.save_settings()
+        self.state.set_setting("theme_mode", mode)
         self.page.theme_mode = (
             ft.ThemeMode.LIGHT if mode == "light" else ft.ThemeMode.DARK
         )
