@@ -11,7 +11,6 @@ from timecapsule import storage, updates
 from timecapsule.models import Memory
 from timecapsule.storage import Database
 from timecapsule.utils import (
-    milestones,
     next_occurrence,
     on_this_day,
     time_since,
@@ -105,6 +104,7 @@ print("updates OK")
 # --- utils
 today = date(2026, 6, 11)
 assert time_since(date(2023, 6, 11), today) == "3 years ago"
+assert time_since(date(2023, 4, 9), today) == "3 years, 2 months, 2 days ago"
 assert time_since(today, today) == "Today"
 assert "from now" in time_since(date(2026, 7, 1), today)
 
@@ -118,9 +118,6 @@ assert next_occurrence(date(2020, 2, 29), date(2026, 2, 1)) == date(2026, 3, 1)
 
 up = upcoming_anniversaries(ms, today)
 assert up[0][0].title == "Match" and up[0][2] == 0
-
-reached, nxt = milestones(date(2023, 6, 11), today)
-assert "1,000 days together" in reached and nxt and "2,000 days" in nxt
 print("utils OK")
 
 print("ALL SMOKE TESTS PASSED")

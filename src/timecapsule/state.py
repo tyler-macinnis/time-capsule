@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import date
-
 from . import storage
 from .models import Memory
 from .storage import Database
@@ -74,17 +72,3 @@ class AppState:
     def set_setting(self, key: str, value: str) -> None:
         self.settings[key] = value
         self.db.set_setting(key, value)
-
-    @property
-    def anchor_date(self) -> date | None:
-        raw = self.settings.get("relationship_start")
-        if not raw:
-            return None
-        try:
-            return date.fromisoformat(raw)
-        except ValueError:
-            return None
-
-    @anchor_date.setter
-    def anchor_date(self, value: date) -> None:
-        self.set_setting("relationship_start", value.isoformat())

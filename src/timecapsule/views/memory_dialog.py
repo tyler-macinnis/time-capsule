@@ -155,8 +155,9 @@ class MemoryDialog:
     def _pick_date(self, _) -> None:
         dp = ft.DatePicker(
             value=self.day,
-            first_date=date(1900, 1, 1),
-            last_date=date(2100, 12, 31),
+            first_date=date(date.min.year, 1, 1),
+            last_date=date(date.max.year, 12, 31),
+            help_text="Any date works — past or future",
             on_change=self._date_changed,
         )
         self.page.show_dialog(dp)

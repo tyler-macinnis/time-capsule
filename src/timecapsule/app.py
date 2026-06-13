@@ -104,11 +104,6 @@ class TimeCapsuleApp:
                             ).open(),
                         ),
                         ft.PopupMenuItem(
-                            content="Set our start date",
-                            icon=ft.Icons.FAVORITE_BORDER,
-                            on_click=lambda _: self._pick_anchor(),
-                        ),
-                        ft.PopupMenuItem(
                             content="Appearance",
                             icon=ft.Icons.PALETTE_OUTLINED,
                             on_click=lambda _: ThemeDialog(
@@ -167,14 +162,17 @@ class TimeCapsuleApp:
         if self.tab_index == 0:
             banner = build_banner(self.state, self._open_memory)
             self.content.content = build_timeline(
-                self.state, self._open_memory, header=banner
+                self.state,
+                self._open_memory,
+                self._confirm_delete_memory,
+                header=banner,
             )
         elif self.tab_index == 1:
             self.content.content = build_gallery(
                 self.page, self.state, self._open_memory
             )
         else:
-            self.content.content = build_stats(self.state, self._pick_anchor)
+            self.content.content = build_stats(self.state)
         self.page.update()
 
     def _on_nav(self, e: ft.ControlEvent) -> None:
@@ -207,24 +205,27 @@ class TimeCapsuleApp:
     def _open_memory(self, memory: Memory | None) -> None:
         MemoryDialog(self.page, self.state, memory, self.refresh).open()
 
-    def _pick_anchor(self) -> None:
-        current = self.state.anchor_date or date.today()
-        dp = ft.DatePicker(
-            value=current,
-            first_date=date(1900, 1, 1),
-            last_date=date.today(),
-            help_text="The day it all began",
-            on_change=self._anchor_changed,
+    def _confirm_delete_memory(self, memory: Memory) -> None:
+        confirm = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Delete memory?"),
+            content=ft.Text(f'"{memory.title}" and its photos will be removed.'),
+            actions=[
+                ft.TextButton("Keep it", on_click=lambda _: self.page.pop_dialog()),
+                ft.FilledButton(
+                    "Delete",
+                    style=ft.ButtonStyle(bgcolor=ft.Colors.ERROR, color=ft.Colors.ON_ERROR),
+                    on_click=lambda _: self._delete_memory(memory),
+                ),
+            ],
         )
-        self.page.show_dialog(dp)
+        self.page.show_dialog(confirm)
 
-    def _anchor_changed(self, e: ft.ControlEvent) -> None:
-        if e.control.value:
-            value = e.control.value
-            self.state.anchor_date = (
-                value.date() if isinstance(value, datetime) else value
-            )
-            self.refresh()
+    def _delete_memory(self, memory: Memory) -> None:
+        self.page.pop_dialog()
+        self.state.remove(memory)
+        self.refresh()
+        self._snack("Memory deleted")
 
     def _about(self) -> None:
         dlg = ft.AlertDialog(

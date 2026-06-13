@@ -9,8 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.1.0] - 2026-06-12
 
+### Added in 3.1.0
+
+- Edit and delete buttons directly on each timeline card (delete asks for
+  confirmation). Editing is still also available by clicking a card.
+- "Days of history" stat: days from your earliest memory to today.
+
+### Fixed in 3.1.0
+
+- Memories can be dated anywhere from 1800 to 2100 — birthdays and other
+  long-ago events fit on the timeline, in the gallery, in stats, and in
+  On This Day.
+- Upcoming anniversaries in Stats now show how long ago each event occurred in
+  years, months, and days instead of years only.
+
 ### Changed in 3.1.0
 
+- Time Capsule now tracks any and all events: the relationship-specific
+  "our start date" concept is gone, along with the "Our story" section,
+  "Days together" card, and milestone badges in Stats.
 - Upgraded the UI framework from Flet 0.28 to Flet 0.85 (the Flet 1.0 line):
   dialogs, file pickers, and the update check now use the new async APIs.
 - Slimmed direct dependencies to three: `flet[all]`, `pillow`, and
@@ -18,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed in 3.1.0
 
+- "Set our start date" menu item and the start-date picker; any stored
+  start date setting is ignored.
 - `python-dateutil` dependency; the "time since" calculation is now pure
   standard library.
 

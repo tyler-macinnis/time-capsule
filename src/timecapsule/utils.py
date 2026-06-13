@@ -1,4 +1,4 @@
-"""Date helpers: time since, anniversaries, milestones."""
+"""Date helpers: time since and anniversaries."""
 
 from __future__ import annotations
 
@@ -94,19 +94,3 @@ def upcoming_anniversaries(
         rows.append((m, nxt, (nxt - today).days))
     rows.sort(key=lambda r: r[2])
     return rows[:limit]
-
-
-MILESTONE_DAYS = [100, 365, 500, 1000, 2000, 3650, 5000, 7300, 10000]
-
-
-def milestones(start: date, today: date | None = None) -> tuple[list[str], str | None]:
-    """(reached milestone labels, next milestone label with countdown)."""
-    today = today or date.today()
-    days = (today - start).days
-    reached = [f"{d:,} days together" for d in MILESTONE_DAYS if days >= d]
-    nxt = None
-    for d in MILESTONE_DAYS:
-        if days < d:
-            nxt = f"{d:,} days on {(start + timedelta(days=d)).strftime('%B %d, %Y')} — {d - days:,} to go"
-            break
-    return reached, nxt

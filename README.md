@@ -1,7 +1,8 @@
 # Time Capsule
 
-A memory journal for the moments that matter: a photo-rich timeline of your story,
-an "On This Day" greeting at every launch, and a love-stats dashboard.
+A memory journal for the moments that matter: a photo-rich timeline of any
+and all events, an "On This Day" greeting at every launch, and a stats
+dashboard.
 
 ## Documentation
 
@@ -10,9 +11,10 @@ an "On This Day" greeting at every launch, and a love-stats dashboard.
 
 ## Features
 
-- **Timeline** — memories grouped by year with notes, categories, photos, and "time since"
+- **Timeline** — memories grouped by year with notes, categories, photos, "time since",
+  and edit/delete buttons on every card
 - **Gallery** — every photo in one grid, with a full-size viewer
-- **Stats** — days together, milestones, memories by category, upcoming anniversaries
+- **Stats** — days of history, memories by category, upcoming anniversaries
 - **On This Day** — a surprise greeting when a memory's anniversary is today
 - **Photos** — attach any number of pictures to a memory; thumbnails are generated automatically
 - **CSV** — export and import memories with proper file dialogs

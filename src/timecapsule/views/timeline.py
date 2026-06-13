@@ -51,6 +51,7 @@ def memory_card(
     memory: Memory,
     state: AppState,
     on_open: Callable[[Memory], None],
+    on_delete: Callable[[Memory], None],
 ) -> ft.Control:
     color = category_color(state.categories, memory.category)
     body: list[ft.Control] = [
@@ -61,6 +62,18 @@ def memory_card(
                     memory.day.strftime("%B %d, %Y"),
                     size=12,
                     color=ft.Colors.ON_SURFACE_VARIANT,
+                ),
+                ft.IconButton(
+                    icon=ft.Icons.EDIT_OUTLINED,
+                    icon_size=18,
+                    tooltip="Edit memory",
+                    on_click=lambda _: on_open(memory),
+                ),
+                ft.IconButton(
+                    icon=ft.Icons.DELETE_OUTLINE,
+                    icon_size=18,
+                    tooltip="Delete memory",
+                    on_click=lambda _: on_delete(memory),
                 ),
             ]
         ),
@@ -108,6 +121,7 @@ def memory_card(
 def build_timeline(
     state: AppState,
     on_open: Callable[[Memory], None],
+    on_delete: Callable[[Memory], None],
     header: ft.Control | None = None,
 ) -> ft.Control:
     memories = state.filtered_memories()
@@ -142,5 +156,5 @@ def build_timeline(
                     padding=ft.Padding.only(top=10),
                 )
             )
-        controls.append(memory_card(m, state, on_open))
+        controls.append(memory_card(m, state, on_open, on_delete))
     return ft.ListView(controls, spacing=10, padding=20, expand=True)
