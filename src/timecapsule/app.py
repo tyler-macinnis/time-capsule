@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import csv
 import os
 import webbrowser
@@ -44,9 +45,8 @@ class TimeCapsuleApp:
             else ft.ThemeMode.DARK
         )
 
-        self.export_picker = ft.FilePicker(on_result=self._export_csv)
-        self.import_picker = ft.FilePicker(on_result=self._import_csv)
-        page.overlay.extend([self.export_picker, self.import_picker])
+        self.file_picker = ft.FilePicker()
+        page.services.append(self.file_picker)
 
         self.search_field = ft.TextField(
             hint_text="Search memories…",
@@ -97,19 +97,19 @@ class TimeCapsuleApp:
                 ft.PopupMenuButton(
                     items=[
                         ft.PopupMenuItem(
-                            text="Manage categories",
+                            content="Manage categories",
                             icon=ft.Icons.LABEL_OUTLINE,
                             on_click=lambda _: CategoryManager(
                                 self.page, self.state, self.refresh
                             ).open(),
                         ),
                         ft.PopupMenuItem(
-                            text="Set our start date",
+                            content="Set our start date",
                             icon=ft.Icons.FAVORITE_BORDER,
                             on_click=lambda _: self._pick_anchor(),
                         ),
                         ft.PopupMenuItem(
-                            text="Appearance",
+                            content="Appearance",
                             icon=ft.Icons.PALETTE_OUTLINED,
                             on_click=lambda _: ThemeDialog(
                                 self.page, self.state, self._on_theme_change
@@ -117,30 +117,23 @@ class TimeCapsuleApp:
                         ),
                         ft.PopupMenuItem(),
                         ft.PopupMenuItem(
-                            text="Check for updates",
+                            content="Check for updates",
                             icon=ft.Icons.SYSTEM_UPDATE_ALT,
-                            on_click=lambda _: self._manual_update_check(),
+                            on_click=self._manual_update_check,
                         ),
                         ft.PopupMenuItem(
-                            text="Export to CSV",
+                            content="Export to CSV",
                             icon=ft.Icons.UPLOAD_FILE,
-                            on_click=lambda _: self.export_picker.save_file(
-                                dialog_title="Export memories",
-                                file_name="memories_export.csv",
-                                allowed_extensions=["csv"],
-                            ),
+                            on_click=self._export_csv,
                         ),
                         ft.PopupMenuItem(
-                            text="Import from CSV",
+                            content="Import from CSV",
                             icon=ft.Icons.DOWNLOAD,
-                            on_click=lambda _: self.import_picker.pick_files(
-                                dialog_title="Import memories",
-                                allowed_extensions=["csv"],
-                            ),
+                            on_click=self._import_csv,
                         ),
                         ft.PopupMenuItem(),
                         ft.PopupMenuItem(
-                            text="About",
+                            content="About",
                             icon=ft.Icons.INFO_OUTLINE,
                             on_click=lambda _: self._about(),
                         ),
@@ -166,7 +159,7 @@ class TimeCapsuleApp:
         self.refresh()
         maybe_show_dialog(page, self.state)
         if self.state.settings.get("update_check", "on") != "off":
-            page.run_thread(self._startup_update_check)
+            page.run_task(self._startup_update_check)
 
     # ------------------------------------------------------------ rendering
 
@@ -217,17 +210,20 @@ class TimeCapsuleApp:
     def _pick_anchor(self) -> None:
         current = self.state.anchor_date or date.today()
         dp = ft.DatePicker(
-            value=datetime(current.year, current.month, current.day),
-            first_date=datetime(1900, 1, 1),
-            last_date=datetime.now(),
+            value=current,
+            first_date=date(1900, 1, 1),
+            last_date=date.today(),
             help_text="The day it all began",
             on_change=self._anchor_changed,
         )
-        self.page.open(dp)
+        self.page.show_dialog(dp)
 
     def _anchor_changed(self, e: ft.ControlEvent) -> None:
         if e.control.value:
-            self.state.anchor_date = e.control.value.date()
+            value = e.control.value
+            self.state.anchor_date = (
+                value.date() if isinstance(value, datetime) else value
+            )
             self.refresh()
 
     def _about(self) -> None:
@@ -237,26 +233,23 @@ class TimeCapsuleApp:
                 "A memory journal for the moments that matter.\n\n"
                 "Made with love. Icon by Pixel Perfect from Flaticon."
             ),
-            actions=[ft.TextButton("Close", on_click=lambda _: self.page.close(dlg))],
+            actions=[ft.TextButton("Close", on_click=lambda _: self.page.pop_dialog())],
         )
-        self.page.open(dlg)
+        self.page.show_dialog(dlg)
 
     def _snack(self, message: str) -> None:
-        self.page.open(ft.SnackBar(ft.Text(message)))
+        self.page.show_dialog(ft.SnackBar(ft.Text(message)))
 
     # -------------------------------------------------------------- updates
 
-    def _startup_update_check(self) -> None:
-        latest = updates.fetch_latest_version()
+    async def _startup_update_check(self) -> None:
+        latest = await asyncio.to_thread(updates.fetch_latest_version)
         if latest and updates.is_newer(latest):
             self._show_update_dialog(latest)
 
-    def _manual_update_check(self) -> None:
+    async def _manual_update_check(self) -> None:
         self._snack("Checking for updates…")
-        self.page.run_thread(self._manual_update_check_worker)
-
-    def _manual_update_check_worker(self) -> None:
-        latest = updates.fetch_latest_version()
+        latest = await asyncio.to_thread(updates.fetch_latest_version)
         if latest is None:
             self._snack("Could not reach GitHub to check for updates")
         elif updates.is_newer(latest):
@@ -274,24 +267,30 @@ class TimeCapsuleApp:
                 "Download the new installer from GitHub?"
             ),
             actions=[
-                ft.TextButton("Later", on_click=lambda _: self.page.close(dlg)),
+                ft.TextButton("Later", on_click=lambda _: self.page.pop_dialog()),
                 ft.FilledButton(
                     "Download",
                     on_click=lambda _: (
                         webbrowser.open(updates.RELEASES_PAGE),
-                        self.page.close(dlg),
+                        self.page.pop_dialog(),
                     ),
                 ),
             ],
         )
-        self.page.open(dlg)
+        self.page.show_dialog(dlg)
 
     # ------------------------------------------------------------------ CSV
 
-    def _export_csv(self, e: ft.FilePickerResultEvent) -> None:
-        if not e.path:
+    async def _export_csv(self) -> None:
+        path = await self.file_picker.save_file(
+            dialog_title="Export memories",
+            file_name="memories_export.csv",
+            allowed_extensions=["csv"],
+        )
+        if not path:
             return
-        path = e.path if e.path.lower().endswith(".csv") else e.path + ".csv"
+        if not path.lower().endswith(".csv"):
+            path += ".csv"
         with open(path, "w", newline="", encoding="utf-8") as fh:
             writer = csv.writer(fh)
             writer.writerow(CSV_FIELDS)
@@ -299,12 +298,16 @@ class TimeCapsuleApp:
                 writer.writerow([m.title, m.day.isoformat(), m.notes, m.category])
         self._snack(f"Exported {len(self.state.memories)} memories")
 
-    def _import_csv(self, e: ft.FilePickerResultEvent) -> None:
-        if not e.files or not e.files[0].path:
+    async def _import_csv(self) -> None:
+        files = await self.file_picker.pick_files(
+            dialog_title="Import memories",
+            allowed_extensions=["csv"],
+        )
+        if not files or not files[0].path:
             return
         added = skipped = 0
         try:
-            with open(e.files[0].path, "r", newline="", encoding="utf-8-sig") as fh:
+            with open(files[0].path, "r", newline="", encoding="utf-8-sig") as fh:
                 for row in csv.DictReader(fh):
                     title = (row.get("Title") or row.get("Event") or "").strip()
                     day = _parse_csv_date(row.get("Date", ""))

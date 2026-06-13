@@ -32,7 +32,7 @@ def build_gallery(
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=12,
             ),
-            alignment=ft.alignment.center,
+            alignment=ft.Alignment.CENTER,
             expand=True,
         )
 
@@ -42,7 +42,7 @@ def build_gallery(
                 [
                     ft.Image(
                         src=storage.photo_path(name),
-                        fit=ft.ImageFit.CONTAIN,
+                        fit=ft.BoxFit.CONTAIN,
                         border_radius=8,
                         expand=True,
                     ),
@@ -60,12 +60,12 @@ def build_gallery(
             actions=[
                 ft.TextButton(
                     "Open memory",
-                    on_click=lambda _: (page.close(viewer), on_open_memory(memory)),
+                    on_click=lambda _: (page.pop_dialog(), on_open_memory(memory)),
                 ),
-                ft.TextButton("Close", on_click=lambda _: page.close(viewer)),
+                ft.TextButton("Close", on_click=lambda _: page.pop_dialog()),
             ],
         )
-        page.open(viewer)
+        page.show_dialog(viewer)
 
     tiles = []
     for name, memory in photos:
@@ -74,7 +74,7 @@ def build_gallery(
             continue
         tiles.append(
             ft.Container(
-                content=ft.Image(src=thumb, fit=ft.ImageFit.COVER, border_radius=10),
+                content=ft.Image(src=thumb, fit=ft.BoxFit.COVER, border_radius=10),
                 tooltip=memory.title,
                 ink=True,
                 border_radius=10,
@@ -85,7 +85,6 @@ def build_gallery(
     return ft.GridView(
         tiles,
         expand=True,
-        runs_count=0,
         max_extent=180,
         spacing=10,
         run_spacing=10,

@@ -4,26 +4,39 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-from dateutil.relativedelta import relativedelta
-
 from .models import Memory
+
+
+def _ymd_between(start: date, end: date) -> tuple[int, int, int]:
+    """Calendar years, months, and days from start to end (start <= end)."""
+    years = end.year - start.year
+    months = end.month - start.month
+    days = end.day - start.day
+    if days < 0:
+        months -= 1
+        last_of_prev_month = end.replace(day=1) - timedelta(days=1)
+        days += last_of_prev_month.day
+    if months < 0:
+        years -= 1
+        months += 12
+    return years, months, days
 
 
 def time_since(day: date, today: date | None = None) -> str:
     today = today or date.today()
     if day > today:
-        delta = relativedelta(day, today)
+        years, months, days = _ymd_between(today, day)
         suffix = " from now"
     else:
-        delta = relativedelta(today, day)
-        suffix = " ago" if (delta.years or delta.months or delta.days) else ""
+        years, months, days = _ymd_between(day, today)
+        suffix = " ago" if (years or months or days) else ""
     parts = []
-    if delta.years:
-        parts.append(f"{delta.years} year{'s' if delta.years > 1 else ''}")
-    if delta.months:
-        parts.append(f"{delta.months} month{'s' if delta.months > 1 else ''}")
-    if delta.days:
-        parts.append(f"{delta.days} day{'s' if delta.days > 1 else ''}")
+    if years:
+        parts.append(f"{years} year{'s' if years > 1 else ''}")
+    if months:
+        parts.append(f"{months} month{'s' if months > 1 else ''}")
+    if days:
+        parts.append(f"{days} day{'s' if days > 1 else ''}")
     return (", ".join(parts) or "Today") + (suffix if parts else "")
 
 

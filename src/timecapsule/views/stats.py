@@ -76,7 +76,7 @@ def build_stats(state: AppState, on_set_anchor: Callable[[], None]) -> ft.Contro
                             content=ft.Text(label, size=11, color=ft.Colors.WHITE),
                             bgcolor=accent(),
                             border_radius=20,
-                            padding=ft.padding.symmetric(horizontal=10, vertical=4),
+                            padding=ft.Padding.symmetric(horizontal=10, vertical=4),
                         )
                         for label in reached[-4:]
                     ],

@@ -26,7 +26,7 @@ def _thumb_strip(memory: Memory) -> ft.Control | None:
                     src=path,
                     width=72,
                     height=72,
-                    fit=ft.ImageFit.COVER,
+                    fit=ft.BoxFit.COVER,
                     border_radius=8,
                 )
             )
@@ -41,7 +41,7 @@ def _thumb_strip(memory: Memory) -> ft.Control | None:
                 height=72,
                 border_radius=8,
                 bgcolor=ft.Colors.SECONDARY_CONTAINER,
-                alignment=ft.alignment.center,
+                alignment=ft.Alignment.CENTER,
             )
         )
     return ft.Row(thumbs, spacing=6)
@@ -84,7 +84,7 @@ def memory_card(
                 content=ft.Text(memory.category, size=11, color=ft.Colors.WHITE),
                 bgcolor=color,
                 border_radius=20,
-                padding=ft.padding.symmetric(horizontal=10, vertical=3),
+                padding=ft.Padding.symmetric(horizontal=10, vertical=3),
             )
         )
     return ft.Container(
@@ -128,7 +128,7 @@ def build_timeline(
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     spacing=12,
                 ),
-                alignment=ft.alignment.center,
+                alignment=ft.Alignment.CENTER,
                 padding=60,
             )
         )
@@ -139,7 +139,7 @@ def build_timeline(
             controls.append(
                 ft.Container(
                     content=ft.Text(str(year), size=22, weight=ft.FontWeight.BOLD),
-                    padding=ft.padding.only(top=10),
+                    padding=ft.Padding.only(top=10),
                 )
             )
         controls.append(memory_card(m, state, on_open))

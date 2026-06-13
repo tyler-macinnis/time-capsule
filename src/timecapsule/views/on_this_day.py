@@ -39,7 +39,7 @@ def build_banner(
             if os.path.exists(path):
                 thumb = ft.Image(
                     src=path, width=48, height=48,
-                    fit=ft.ImageFit.COVER, border_radius=8,
+                    fit=ft.BoxFit.COVER, border_radius=8,
                 )
         rows.append(
             ft.Container(
@@ -70,11 +70,11 @@ def build_banner(
         padding=14,
         border_radius=12,
         gradient=ft.LinearGradient(
-            begin=ft.alignment.top_left,
-            end=ft.alignment.bottom_right,
+            begin=ft.Alignment.TOP_LEFT,
+            end=ft.Alignment.BOTTOM_RIGHT,
             colors=[ft.Colors.with_opacity(0.25, accent()), ft.Colors.SURFACE_CONTAINER_HIGHEST],
         ),
-        border=ft.border.all(1, ft.Colors.with_opacity(0.5, accent())),
+        border=ft.Border.all(1, ft.Colors.with_opacity(0.5, accent())),
     )
 
 
@@ -89,7 +89,7 @@ def maybe_show_dialog(page: ft.Page, state: AppState) -> None:
         path = storage.photo_path(first.photos[0])
         if os.path.exists(path):
             body.append(
-                ft.Image(src=path, height=240, fit=ft.ImageFit.COVER, border_radius=10)
+                ft.Image(src=path, height=240, fit=ft.BoxFit.COVER, border_radius=10)
             )
     body.append(ft.Text(first.title, size=18, weight=ft.FontWeight.BOLD))
     body.append(ft.Text(years_ago_text(first.day), italic=True, color=accent()))
@@ -112,6 +112,6 @@ def maybe_show_dialog(page: ft.Page, state: AppState) -> None:
             content=ft.Column(body, tight=True, spacing=8,
                               horizontal_alignment=ft.CrossAxisAlignment.CENTER),
         ),
-        actions=[ft.FilledButton("Relive it", on_click=lambda _: page.close(dlg))],
+        actions=[ft.FilledButton("Relive it", on_click=lambda _: page.pop_dialog())],
     )
-    page.open(dlg)
+    page.show_dialog(dlg)

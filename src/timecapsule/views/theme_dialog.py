@@ -22,7 +22,6 @@ class ThemeDialog:
         self.hex_field = ft.TextField(
             label="Custom color (hex)",
             value=accent(),
-            prefix_text="",
             width=200,
             max_length=7,
             on_submit=self._apply_hex,
@@ -63,11 +62,11 @@ class ThemeDialog:
                     spacing=12,
                 ),
             ),
-            actions=[ft.TextButton("Done", on_click=lambda _: self.page.close(self.dialog))],
+            actions=[ft.TextButton("Done", on_click=lambda _: self.page.pop_dialog())],
         )
 
     def open(self) -> None:
-        self.page.open(self.dialog)
+        self.page.show_dialog(self.dialog)
 
     def _rebuild_swatches(self) -> None:
         tiles = []
@@ -81,11 +80,11 @@ class ThemeDialog:
                             height=44,
                             bgcolor=color,
                             border_radius=22,
-                            border=ft.border.all(3, ft.Colors.ON_SURFACE) if selected else None,
+                            border=ft.Border.all(3, ft.Colors.ON_SURFACE) if selected else None,
                             content=ft.Icon(ft.Icons.CHECK, color=ft.Colors.WHITE, size=20)
                             if selected
                             else None,
-                            alignment=ft.alignment.center,
+                            alignment=ft.Alignment.CENTER,
                             tooltip=name,
                             on_click=lambda _, c=color: self._set_color(c),
                         ),
@@ -102,7 +101,7 @@ class ThemeDialog:
         self.state.set_setting("accent", color)
         apply_theme(self.page)
         self.hex_field.value = color
-        self.hex_field.error_text = None
+        self.hex_field.error = None
         self._rebuild_swatches()
         self.dialog.update()
         self.on_change()
@@ -112,7 +111,7 @@ class ThemeDialog:
         if not raw.startswith("#"):
             raw = "#" + raw
         if not is_valid_hex(raw):
-            self.hex_field.error_text = "Use a 6-digit hex color, e.g. #E91E63"
+            self.hex_field.error = "Use a 6-digit hex color, e.g. #E91E63"
             self.hex_field.update()
             return
         self._set_color(raw.upper())

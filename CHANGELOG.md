@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-06-12
+
+### Changed in 3.1.0
+
+- Upgraded the UI framework from Flet 0.28 to Flet 0.85 (the Flet 1.0 line):
+  dialogs, file pickers, and the update check now use the new async APIs.
+- Slimmed direct dependencies to three: `flet[all]`, `pillow`, and
+  `pyinstaller` — all at their latest versions.
+
+### Removed in 3.1.0
+
+- `python-dateutil` dependency; the "time since" calculation is now pure
+  standard library.
+
 ## [3.0.0] - 2026-06-12
 
 > **Breaking change**: data is now stored in a SQLite database under
