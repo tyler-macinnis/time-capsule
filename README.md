@@ -12,7 +12,7 @@ dashboard.
 ## Features
 
 - **Timeline** — memories grouped by year with notes, categories, photos, "time since",
-  and edit/delete buttons on every card
+  and edit/delete buttons on every card; memories can be dated anywhere — past or future
 - **Gallery** — every photo in one grid, with a full-size viewer
 - **Stats** — days of history, memories by category, upcoming anniversaries
 - **On This Day** — a surprise greeting when a memory's anniversary is today
@@ -99,23 +99,39 @@ App data (the SQLite database and the `photos/` folder) lives in
 
 ## Publish a Release
 
-Releases are fully automated by [.github/workflows/release.yml](.github/workflows/release.yml):
+Releases are fully automated by [.github/workflows/release.yml](.github/workflows/release.yml).
+The workflow refuses to run unless the tag, the app version, and the changelog all
+agree, so follow these steps in order (replace `x.y.z` with the new version):
 
-1. Bump `VERSION` in [src/timecapsule/\_\_init\_\_.py](src/timecapsule/__init__.py).
-2. Add a matching `## [x.y.z] - YYYY-MM-DD` entry to [CHANGELOG.md](CHANGELOG.md).
-3. Either push a tag or trigger the workflow manually:
+1. Bump `VERSION` in [src/timecapsule/\_\_init\_\_.py](src/timecapsule/__init__.py)
+   (e.g. `VERSION = "x.y.z"`).
+2. Move the notes for the release from `## [Unreleased]` into a matching
+   `## [x.y.z] - YYYY-MM-DD` entry in [CHANGELOG.md](CHANGELOG.md). The workflow
+   extracts this entry verbatim as the GitHub release notes.
+3. Commit and push those changes to `main`, then confirm CI is green.
+4. Tag and push:
 
    ```bash
-   git tag v3.0.0
-   git push origin v3.0.0
+   git tag vx.y.z
+   git push origin vx.y.z
    ```
 
-   Or run the **Release** workflow from the GitHub Actions tab and enter the version.
+   Alternatively, run the **Release** workflow manually from the GitHub Actions
+   tab and enter the version (e.g. `x.y.z`); the workflow creates and pushes the
+   tag for you.
 
-The workflow verifies the version matches the app, runs the smoke tests, builds the
-executable and installer, extracts the release notes from the changelog, and publishes
-a GitHub Release with the installer and portable `.exe` attached. Every push to `main`
-is also smoke-tested and built by [.github/workflows/ci.yml](.github/workflows/ci.yml).
+The workflow then:
+
+- verifies the version is `x.y.z` and matches `VERSION` in the app,
+- fails if there is no matching `CHANGELOG.md` entry,
+- runs the smoke tests,
+- builds the portable executable and the Inno Setup installer, and
+- publishes a GitHub Release with `TimeCapsule-Setup-<version>.exe` and
+  `Time.Capsule.<version>.portable.exe` attached.
+
+If any check fails, fix the version or changelog, push, and re-run the workflow
+(or delete and re-push the tag). Every push to `main` is also smoke-tested and
+built by [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
 ## Attribution
 
