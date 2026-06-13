@@ -25,9 +25,7 @@ class AppState:
         return [
             m
             for m in items
-            if q in m.title.lower()
-            or q in m.notes.lower()
-            or q in m.category.lower()
+            if q in m.title.lower() or q in m.notes.lower() or q in m.category.lower()
         ]
 
     def get(self, memory_id: str) -> Memory | None:

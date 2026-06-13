@@ -23,7 +23,11 @@ def build_gallery(
         return ft.Container(
             content=ft.Column(
                 [
-                    ft.Icon(ft.Icons.PHOTO_LIBRARY_OUTLINED, size=64, color=ft.Colors.OUTLINE),
+                    ft.Icon(
+                        ft.Icons.PHOTO_LIBRARY_OUTLINED,
+                        size=64,
+                        color=ft.Colors.OUTLINE,
+                    ),
                     ft.Text(
                         "No photos yet — attach some to a memory",
                         color=ft.Colors.OUTLINE,

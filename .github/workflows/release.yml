@@ -76,8 +76,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run smoke tests
-        run: python smoke_test.py
+      - name: Run tests
+        run: python -m pytest
 
       - name: Build executable
         run: python build_release.py

@@ -38,8 +38,11 @@ def build_banner(
             path = storage.thumb_path(m.photos[0])
             if os.path.exists(path):
                 thumb = ft.Image(
-                    src=path, width=48, height=48,
-                    fit=ft.BoxFit.COVER, border_radius=8,
+                    src=path,
+                    width=48,
+                    height=48,
+                    fit=ft.BoxFit.COVER,
+                    border_radius=8,
                 )
         rows.append(
             ft.Container(
@@ -72,7 +75,10 @@ def build_banner(
         gradient=ft.LinearGradient(
             begin=ft.Alignment.TOP_LEFT,
             end=ft.Alignment.BOTTOM_RIGHT,
-            colors=[ft.Colors.with_opacity(0.25, accent()), ft.Colors.SURFACE_CONTAINER_HIGHEST],
+            colors=[
+                ft.Colors.with_opacity(0.25, accent()),
+                ft.Colors.SURFACE_CONTAINER_HIGHEST,
+            ],
         ),
         border=ft.Border.all(1, ft.Colors.with_opacity(0.5, accent())),
     )
@@ -94,12 +100,18 @@ def maybe_show_dialog(page: ft.Page, state: AppState) -> None:
     body.append(ft.Text(first.title, size=18, weight=ft.FontWeight.BOLD))
     body.append(ft.Text(years_ago_text(first.day), italic=True, color=accent()))
     if first.notes:
-        body.append(ft.Text(first.notes, size=13, max_lines=4,
-                            overflow=ft.TextOverflow.ELLIPSIS))
+        body.append(
+            ft.Text(
+                first.notes, size=13, max_lines=4, overflow=ft.TextOverflow.ELLIPSIS
+            )
+        )
     if len(matches) > 1:
         body.append(
-            ft.Text(f"…and {len(matches) - 1} more from this day", size=12,
-                    color=ft.Colors.ON_SURFACE_VARIANT)
+            ft.Text(
+                f"…and {len(matches) - 1} more from this day",
+                size=12,
+                color=ft.Colors.ON_SURFACE_VARIANT,
+            )
         )
 
     dlg = ft.AlertDialog(
@@ -109,8 +121,12 @@ def maybe_show_dialog(page: ft.Page, state: AppState) -> None:
         ),
         content=ft.Container(
             width=420,
-            content=ft.Column(body, tight=True, spacing=8,
-                              horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+            content=ft.Column(
+                body,
+                tight=True,
+                spacing=8,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
         ),
         actions=[ft.FilledButton("Relive it", on_click=lambda _: page.pop_dialog())],
     )

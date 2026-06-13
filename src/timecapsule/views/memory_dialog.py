@@ -13,8 +13,18 @@ from ..models import Memory
 from ..state import AppState
 
 SWATCHES = [
-    "#E91E63", "#F06292", "#BA68C8", "#7E57C2", "#5C6BC0", "#42A5F5",
-    "#26A69A", "#66BB6A", "#9CCC65", "#FFB300", "#FF7043", "#8D6E63",
+    "#E91E63",
+    "#F06292",
+    "#BA68C8",
+    "#7E57C2",
+    "#5C6BC0",
+    "#42A5F5",
+    "#26A69A",
+    "#66BB6A",
+    "#9CCC65",
+    "#FFB300",
+    "#FF7043",
+    "#8D6E63",
 ]
 
 
@@ -132,8 +142,11 @@ class MemoryDialog:
                 ft.Stack(
                     [
                         ft.Image(
-                            src=path, width=90, height=90,
-                            fit=ft.BoxFit.COVER, border_radius=8,
+                            src=path,
+                            width=90,
+                            height=90,
+                            fit=ft.BoxFit.COVER,
+                            border_radius=8,
                         ),
                         ft.Container(
                             content=ft.IconButton(
@@ -238,7 +251,9 @@ class MemoryDialog:
                 ft.TextButton("Keep it", on_click=lambda _: self.page.pop_dialog()),
                 ft.FilledButton(
                     "Delete",
-                    style=ft.ButtonStyle(bgcolor=ft.Colors.ERROR, color=ft.Colors.ON_ERROR),
+                    style=ft.ButtonStyle(
+                        bgcolor=ft.Colors.ERROR, color=ft.Colors.ON_ERROR
+                    ),
                     on_click=lambda _: self._delete(),
                 ),
             ],
@@ -303,7 +318,9 @@ class CategoryManager:
             rows.append(
                 ft.Row(
                     [
-                        ft.Container(width=18, height=18, bgcolor=color, border_radius=9),
+                        ft.Container(
+                            width=18, height=18, bgcolor=color, border_radius=9
+                        ),
                         ft.Text(name, expand=True),
                         ft.IconButton(
                             icon=ft.Icons.DELETE_OUTLINE,

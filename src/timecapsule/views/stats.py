@@ -11,7 +11,9 @@ from ..theme import GOLD, accent, category_color
 from ..utils import time_since, upcoming_anniversaries
 
 
-def _stat_card(icon: str, label: str, value: str, color: str | None = None) -> ft.Control:
+def _stat_card(
+    icon: str, label: str, value: str, color: str | None = None
+) -> ft.Control:
     color = color or accent()
     return ft.Container(
         content=ft.Column(
@@ -56,7 +58,9 @@ def build_stats(state: AppState) -> ft.Control:
         first = min(m.day for m in state.memories)
         span = (today - first).days
         if span > 0:
-            cards.insert(0, _stat_card(ft.Icons.HISTORY, "Days of history", f"{span:,}"))
+            cards.insert(
+                0, _stat_card(ft.Icons.HISTORY, "Days of history", f"{span:,}")
+            )
     sections.append(ft.Row(cards, spacing=12))
 
     # ---- memories by category
@@ -71,7 +75,9 @@ def build_stats(state: AppState) -> ft.Control:
             bars.append(
                 ft.Row(
                     [
-                        ft.Text(name, size=13, width=140, overflow=ft.TextOverflow.ELLIPSIS),
+                        ft.Text(
+                            name, size=13, width=140, overflow=ft.TextOverflow.ELLIPSIS
+                        ),
                         ft.Container(
                             width=max(20, 360 * count / max_count),
                             height=16,
@@ -90,20 +96,34 @@ def build_stats(state: AppState) -> ft.Control:
     if upcoming:
         rows = []
         for m, nxt_date, days_until in upcoming:
-            when = "Today!" if days_until == 0 else (
-                "Tomorrow" if days_until == 1 else f"in {days_until} days"
+            when = (
+                "Today!"
+                if days_until == 0
+                else ("Tomorrow" if days_until == 1 else f"in {days_until} days")
             )
             rows.append(
                 ft.Row(
                     [
-                        ft.Icon(ft.Icons.CAKE if days_until == 0 else ft.Icons.EVENT,
-                                size=18,
-                                color=accent() if days_until == 0 else ft.Colors.ON_SURFACE_VARIANT),
-                        ft.Text(m.title, expand=True, overflow=ft.TextOverflow.ELLIPSIS),
-                        ft.Text(time_since(m.day), size=12,
-                                color=ft.Colors.ON_SURFACE_VARIANT),
-                        ft.Text(f"{nxt_date.strftime('%b %d')} · {when}", size=12,
-                                weight=ft.FontWeight.BOLD if days_until <= 7 else None),
+                        ft.Icon(
+                            ft.Icons.CAKE if days_until == 0 else ft.Icons.EVENT,
+                            size=18,
+                            color=accent()
+                            if days_until == 0
+                            else ft.Colors.ON_SURFACE_VARIANT,
+                        ),
+                        ft.Text(
+                            m.title, expand=True, overflow=ft.TextOverflow.ELLIPSIS
+                        ),
+                        ft.Text(
+                            time_since(m.day),
+                            size=12,
+                            color=ft.Colors.ON_SURFACE_VARIANT,
+                        ),
+                        ft.Text(
+                            f"{nxt_date.strftime('%b %d')} · {when}",
+                            size=12,
+                            weight=ft.FontWeight.BOLD if days_until <= 7 else None,
+                        ),
                     ],
                     spacing=10,
                 )

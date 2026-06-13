@@ -156,9 +156,7 @@ class Database:
                     memory.created_at,
                 ),
             )
-            self._conn.execute(
-                "DELETE FROM photos WHERE memory_id = ?", (memory.id,)
-            )
+            self._conn.execute("DELETE FROM photos WHERE memory_id = ?", (memory.id,))
             self._conn.executemany(
                 "INSERT INTO photos (name, memory_id, position) VALUES (?, ?, ?)",
                 [(name, memory.id, i) for i, name in enumerate(memory.photos)],

@@ -80,8 +80,12 @@ class ThemeDialog:
                             height=44,
                             bgcolor=color,
                             border_radius=22,
-                            border=ft.Border.all(3, ft.Colors.ON_SURFACE) if selected else None,
-                            content=ft.Icon(ft.Icons.CHECK, color=ft.Colors.WHITE, size=20)
+                            border=ft.Border.all(3, ft.Colors.ON_SURFACE)
+                            if selected
+                            else None,
+                            content=ft.Icon(
+                                ft.Icons.CHECK, color=ft.Colors.WHITE, size=20
+                            )
                             if selected
                             else None,
                             alignment=ft.Alignment.CENTER,
