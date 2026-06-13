@@ -26,7 +26,7 @@ def _thumb_strip(memory: Memory) -> ft.Control | None:
                     src=path,
                     width=72,
                     height=72,
-                    fit=ft.ImageFit.COVER,
+                    fit=ft.BoxFit.COVER,
                     border_radius=8,
                 )
             )
@@ -41,7 +41,7 @@ def _thumb_strip(memory: Memory) -> ft.Control | None:
                 height=72,
                 border_radius=8,
                 bgcolor=ft.Colors.SECONDARY_CONTAINER,
-                alignment=ft.alignment.center,
+                alignment=ft.Alignment.CENTER,
             )
         )
     return ft.Row(thumbs, spacing=6)
@@ -51,6 +51,7 @@ def memory_card(
     memory: Memory,
     state: AppState,
     on_open: Callable[[Memory], None],
+    on_delete: Callable[[Memory], None],
 ) -> ft.Control:
     color = category_color(state.categories, memory.category)
     body: list[ft.Control] = [
@@ -61,6 +62,18 @@ def memory_card(
                     memory.day.strftime("%B %d, %Y"),
                     size=12,
                     color=ft.Colors.ON_SURFACE_VARIANT,
+                ),
+                ft.IconButton(
+                    icon=ft.Icons.EDIT_OUTLINED,
+                    icon_size=18,
+                    tooltip="Edit memory",
+                    on_click=lambda _: on_open(memory),
+                ),
+                ft.IconButton(
+                    icon=ft.Icons.DELETE_OUTLINE,
+                    icon_size=18,
+                    tooltip="Delete memory",
+                    on_click=lambda _: on_delete(memory),
                 ),
             ]
         ),
@@ -84,7 +97,7 @@ def memory_card(
                 content=ft.Text(memory.category, size=11, color=ft.Colors.WHITE),
                 bgcolor=color,
                 border_radius=20,
-                padding=ft.padding.symmetric(horizontal=10, vertical=3),
+                padding=ft.Padding.symmetric(horizontal=10, vertical=3),
             )
         )
     return ft.Container(
@@ -108,6 +121,7 @@ def memory_card(
 def build_timeline(
     state: AppState,
     on_open: Callable[[Memory], None],
+    on_delete: Callable[[Memory], None],
     header: ft.Control | None = None,
 ) -> ft.Control:
     memories = state.filtered_memories()
@@ -128,7 +142,7 @@ def build_timeline(
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     spacing=12,
                 ),
-                alignment=ft.alignment.center,
+                alignment=ft.Alignment.CENTER,
                 padding=60,
             )
         )
@@ -139,8 +153,8 @@ def build_timeline(
             controls.append(
                 ft.Container(
                     content=ft.Text(str(year), size=22, weight=ft.FontWeight.BOLD),
-                    padding=ft.padding.only(top=10),
+                    padding=ft.Padding.only(top=10),
                 )
             )
-        controls.append(memory_card(m, state, on_open))
+        controls.append(memory_card(m, state, on_open, on_delete))
     return ft.ListView(controls, spacing=10, padding=20, expand=True)

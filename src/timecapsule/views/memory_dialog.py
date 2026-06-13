@@ -37,8 +37,8 @@ class MemoryDialog:
         self.added_photos: list[str] = []  # imported during this session
         self.removed_photos: list[str] = []  # pending deletion on save
 
-        self.picker = ft.FilePicker(on_result=self._photos_picked)
-        page.overlay.append(self.picker)
+        self.picker = ft.FilePicker()
+        page.services.append(self.picker)
 
         self.title_field = ft.TextField(
             label="Title",
@@ -59,7 +59,7 @@ class MemoryDialog:
             expand=True,
         )
         self.date_btn = ft.OutlinedButton(
-            text=self.day.strftime("%B %d, %Y"),
+            content=self.day.strftime("%B %d, %Y"),
             icon=ft.Icons.CALENDAR_MONTH,
             on_click=self._pick_date,
         )
@@ -97,10 +97,7 @@ class MemoryDialog:
                                 ft.TextButton(
                                     "Add photos",
                                     icon=ft.Icons.ADD_PHOTO_ALTERNATE,
-                                    on_click=lambda _: self.picker.pick_files(
-                                        allow_multiple=True,
-                                        file_type=ft.FilePickerFileType.IMAGE,
-                                    ),
+                                    on_click=self._add_photos,
                                 ),
                             ]
                         ),
@@ -117,7 +114,7 @@ class MemoryDialog:
     # ----------------------------------------------------------------- UI
 
     def open(self) -> None:
-        self.page.open(self.dialog)
+        self.page.show_dialog(self.dialog)
 
     def _category_options(self) -> list[ft.dropdown.Option]:
         opts = [ft.dropdown.Option(key="", text="(none)")]
@@ -136,7 +133,7 @@ class MemoryDialog:
                     [
                         ft.Image(
                             src=path, width=90, height=90,
-                            fit=ft.ImageFit.COVER, border_radius=8,
+                            fit=ft.BoxFit.COVER, border_radius=8,
                         ),
                         ft.Container(
                             content=ft.IconButton(
@@ -146,7 +143,7 @@ class MemoryDialog:
                                 bgcolor=ft.Colors.BLACK54,
                                 on_click=lambda _, n=name: self._remove_photo(n),
                             ),
-                            alignment=ft.alignment.top_right,
+                            alignment=ft.Alignment.TOP_RIGHT,
                         ),
                     ],
                     width=90,
@@ -157,23 +154,27 @@ class MemoryDialog:
 
     def _pick_date(self, _) -> None:
         dp = ft.DatePicker(
-            value=datetime(self.day.year, self.day.month, self.day.day),
-            first_date=datetime(1900, 1, 1),
-            last_date=datetime(2100, 12, 31),
+            value=self.day,
+            first_date=date(date.min.year, 1, 1),
+            last_date=date(date.max.year, 12, 31),
+            help_text="Any date works — past or future",
             on_change=self._date_changed,
         )
-        self.page.open(dp)
+        self.page.show_dialog(dp)
 
     def _date_changed(self, e: ft.ControlEvent) -> None:
         if e.control.value:
-            self.day = e.control.value.date()
-            self.date_btn.text = self.day.strftime("%B %d, %Y")
+            value = e.control.value
+            self.day = value.date() if isinstance(value, datetime) else value
+            self.date_btn.content = self.day.strftime("%B %d, %Y")
             self.date_btn.update()
 
-    def _photos_picked(self, e: ft.FilePickerResultEvent) -> None:
-        if not e.files:
-            return
-        for f in e.files:
+    async def _add_photos(self) -> None:
+        files = await self.picker.pick_files(
+            allow_multiple=True,
+            file_type=ft.FilePickerFileType.IMAGE,
+        )
+        for f in files or []:
             if not f.path:
                 continue
             name = storage.import_photo(f.path)
@@ -198,7 +199,7 @@ class MemoryDialog:
     def _save(self, _) -> None:
         title = self.title_field.value.strip()
         if not title:
-            self.title_field.error_text = "A title is required"
+            self.title_field.error = "A title is required"
             self.title_field.update()
             return
         for name in self.removed_photos:
@@ -234,26 +235,26 @@ class MemoryDialog:
             title=ft.Text("Delete memory?"),
             content=ft.Text(f'"{self.memory.title}" and its photos will be removed.'),
             actions=[
-                ft.TextButton("Keep it", on_click=lambda _: self.page.close(confirm)),
+                ft.TextButton("Keep it", on_click=lambda _: self.page.pop_dialog()),
                 ft.FilledButton(
                     "Delete",
                     style=ft.ButtonStyle(bgcolor=ft.Colors.ERROR, color=ft.Colors.ON_ERROR),
-                    on_click=lambda _: self._delete(confirm),
+                    on_click=lambda _: self._delete(),
                 ),
             ],
         )
-        self.page.open(confirm)
+        self.page.show_dialog(confirm)
 
-    def _delete(self, confirm: ft.AlertDialog) -> None:
-        self.page.close(confirm)
+    def _delete(self) -> None:
+        self.page.pop_dialog()  # close the confirm dialog
         self.state.remove(self.memory)
         self._close()
         self.on_change()
 
     def _close(self) -> None:
-        self.page.close(self.dialog)
-        if self.picker in self.page.overlay:
-            self.page.overlay.remove(self.picker)
+        self.page.pop_dialog()
+        if self.picker in self.page.services:
+            self.page.services.remove(self.picker)
         self.page.update()
 
 
@@ -294,7 +295,7 @@ class CategoryManager:
         )
 
     def open(self) -> None:
-        self.page.open(self.dialog)
+        self.page.show_dialog(self.dialog)
 
     def _rebuild(self) -> None:
         rows = []
@@ -321,7 +322,7 @@ class CategoryManager:
                 height=30,
                 bgcolor=c,
                 border_radius=15,
-                border=ft.border.all(3, ft.Colors.ON_SURFACE)
+                border=ft.Border.all(3, ft.Colors.ON_SURFACE)
                 if c == self.selected_color
                 else None,
                 on_click=lambda _, c=c: self._pick_color(c),
@@ -349,5 +350,5 @@ class CategoryManager:
         self.dialog.update()
 
     def _close(self, _) -> None:
-        self.page.close(self.dialog)
+        self.page.pop_dialog()
         self.on_change()

@@ -1,8 +1,8 @@
 # Time Capsule — User Guide
 
 Time Capsule is a memory journal for the moments that matter: a photo-rich
-timeline of your story, an "On This Day" greeting at every launch, and a
-love-stats dashboard.
+timeline of any and all events — birthdays, anniversaries, trips, firsts —
+with an "On This Day" greeting at every launch and a stats dashboard.
 
 ## Installation
 
@@ -32,19 +32,20 @@ never deleted by the uninstaller (see [Where your data lives](#where-your-data-l
 Switch views with the navigation rail on the left.
 
 - **Timeline** — every memory grouped by year, newest first. Each card shows
-  the title, date, "time since", notes, photo thumbnails, and category.
-  Click a card to edit it.
+  the title, date, "time since", notes, photo thumbnails, and category,
+  plus edit and delete buttons. Click a card to edit it.
 - **Gallery** — every photo across all memories in one grid. Click a photo
   for a full-size viewer with a shortcut to its memory.
-- **Stats** — days together, milestone badges, memories by category, and the
-  next five upcoming anniversaries.
+- **Stats** — days of history, memories by category, and the next five
+  upcoming anniversaries.
 
 ## Working with memories
 
 ### Adding a memory
 
 1. Click the **+** button in the bottom-right corner.
-2. Give it a title (required) and pick a date.
+2. Give it a title (required) and pick a date — anything from 1800 to 2100
+   works, so birthdays and long-ago events fit right in.
 3. Optionally add notes, a category, and photos.
 4. Click **Save**.
 
@@ -53,9 +54,10 @@ or deleted afterwards without affecting Time Capsule.
 
 ### Editing and deleting
 
-Click any memory card (or the **Open memory** button in the photo viewer) to
-open it. Change anything and **Save**, or click **Delete** to remove the
-memory along with its photos.
+Use the pencil or trash buttons on any timeline card, or click the card
+itself (or the **Open memory** button in the photo viewer) to open it.
+Change anything and **Save**, or click **Delete** to remove the memory along
+with its photos. Deleting always asks for confirmation.
 
 ### Searching
 
@@ -75,14 +77,14 @@ When a memory's anniversary lands on today's date, Time Capsule greets you
 with it at launch and pins an "On this day" banner to the top of the
 timeline.
 
-## Stats and milestones
+## Stats
 
-Set your anchor date with **⋮ menu → Set our start date** (or from the Stats
-view) to unlock:
+The Stats view shows:
 
-- a **Days together** counter,
-- milestone badges (100, 365, 500, 1,000 days, and beyond),
-- a countdown to the next milestone.
+- a **Days of history** counter (from your earliest memory to today),
+- total memories and photos,
+- memories by category,
+- the next five upcoming anniversaries with how long ago each event occurred.
 
 ## CSV export and import
 

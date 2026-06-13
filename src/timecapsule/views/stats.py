@@ -1,15 +1,14 @@
-"""Love stats dashboard."""
+"""Stats dashboard."""
 
 from __future__ import annotations
 
 from datetime import date
-from typing import Callable
 
 import flet as ft
 
 from ..state import AppState
 from ..theme import GOLD, accent, category_color
-from ..utils import milestones, time_since, upcoming_anniversaries
+from ..utils import time_since, upcoming_anniversaries
 
 
 def _stat_card(icon: str, label: str, value: str, color: str | None = None) -> ft.Control:
@@ -43,73 +42,22 @@ def _section(title: str, *controls: ft.Control) -> ft.Control:
     )
 
 
-def build_stats(state: AppState, on_set_anchor: Callable[[], None]) -> ft.Control:
+def build_stats(state: AppState) -> ft.Control:
     today = date.today()
     sections: list[ft.Control] = []
 
     # ---- headline cards
     total_photos = sum(len(m.photos) for m in state.memories)
-    anchor = state.anchor_date
     cards = [
         _stat_card(ft.Icons.AUTO_STORIES, "Memories", str(len(state.memories))),
         _stat_card(ft.Icons.PHOTO_CAMERA, "Photos", str(total_photos), GOLD),
     ]
-    if anchor:
-        days = (today - anchor).days
-        cards.insert(0, _stat_card(ft.Icons.FAVORITE, "Days together", f"{days:,}"))
+    if state.memories:
+        first = min(m.day for m in state.memories)
+        span = (today - first).days
+        if span > 0:
+            cards.insert(0, _stat_card(ft.Icons.HISTORY, "Days of history", f"{span:,}"))
     sections.append(ft.Row(cards, spacing=12))
-
-    # ---- our story / anchor
-    if anchor:
-        reached, nxt = milestones(anchor, today)
-        story: list[ft.Control] = [
-            ft.Text(
-                f"Since {anchor.strftime('%B %d, %Y')} — {time_since(anchor)}",
-                italic=True,
-            )
-        ]
-        if reached:
-            story.append(
-                ft.Row(
-                    [
-                        ft.Container(
-                            content=ft.Text(label, size=11, color=ft.Colors.WHITE),
-                            bgcolor=accent(),
-                            border_radius=20,
-                            padding=ft.padding.symmetric(horizontal=10, vertical=4),
-                        )
-                        for label in reached[-4:]
-                    ],
-                    wrap=True,
-                    spacing=6,
-                )
-            )
-        if nxt:
-            story.append(
-                ft.Row(
-                    [
-                        ft.Icon(ft.Icons.FLAG, size=16, color=GOLD),
-                        ft.Text(f"Next milestone: {nxt}", size=13),
-                    ]
-                )
-            )
-        story.append(
-            ft.TextButton("Change start date", icon=ft.Icons.EDIT_CALENDAR,
-                          on_click=lambda _: on_set_anchor())
-        )
-        sections.append(_section("Our story", *story))
-    else:
-        sections.append(
-            _section(
-                "Our story",
-                ft.Text("Set the day it all began to unlock days-together stats."),
-                ft.FilledButton(
-                    "Set our start date",
-                    icon=ft.Icons.FAVORITE_BORDER,
-                    on_click=lambda _: on_set_anchor(),
-                ),
-            )
-        )
 
     # ---- memories by category
     if state.memories:
@@ -142,7 +90,6 @@ def build_stats(state: AppState, on_set_anchor: Callable[[], None]) -> ft.Contro
     if upcoming:
         rows = []
         for m, nxt_date, days_until in upcoming:
-            years = nxt_date.year - m.day.year
             when = "Today!" if days_until == 0 else (
                 "Tomorrow" if days_until == 1 else f"in {days_until} days"
             )
@@ -153,7 +100,7 @@ def build_stats(state: AppState, on_set_anchor: Callable[[], None]) -> ft.Contro
                                 size=18,
                                 color=accent() if days_until == 0 else ft.Colors.ON_SURFACE_VARIANT),
                         ft.Text(m.title, expand=True, overflow=ft.TextOverflow.ELLIPSIS),
-                        ft.Text(f"{years} yr{'s' if years != 1 else ''}", size=12,
+                        ft.Text(time_since(m.day), size=12,
                                 color=ft.Colors.ON_SURFACE_VARIANT),
                         ft.Text(f"{nxt_date.strftime('%b %d')} · {when}", size=12,
                                 weight=ft.FontWeight.BOLD if days_until <= 7 else None),
