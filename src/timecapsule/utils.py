@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+import calendar
+from datetime import date
 
 from .models import Memory
 
@@ -14,8 +15,14 @@ def _ymd_between(start: date, end: date) -> tuple[int, int, int]:
     days = end.day - start.day
     if days < 0:
         months -= 1
-        last_of_prev_month = end.replace(day=1) - timedelta(days=1)
-        days += last_of_prev_month.day
+        # Anchor at start.day in the month before end (clamped to its
+        # length) so days never go negative, e.g. Jan 31 -> Mar 1.
+        anchor_year, anchor_month = end.year, end.month - 1
+        if anchor_month == 0:
+            anchor_year, anchor_month = anchor_year - 1, 12
+        last_day = calendar.monthrange(anchor_year, anchor_month)[1]
+        anchor = date(anchor_year, anchor_month, min(start.day, last_day))
+        days = (end - anchor).days
     if months < 0:
         years -= 1
         months += 12
@@ -58,7 +65,11 @@ def on_this_day(memories: list[Memory], today: date | None = None) -> list[Memor
         md = (m.day.month, m.day.day)
         if md == (today.month, today.day):
             matches.append(m)
-        elif md == (2, 29) and (today.month, today.day) == (3, 1) and not _is_leap(today.year):
+        elif (
+            md == (2, 29)
+            and (today.month, today.day) == (3, 1)
+            and not _is_leap(today.year)
+        ):
             matches.append(m)
     matches.sort(key=lambda m: m.day)
     return matches

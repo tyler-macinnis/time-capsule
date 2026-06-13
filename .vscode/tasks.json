@@ -18,11 +18,12 @@
             "problemMatcher": []
         },
         {
-            "label": "Run Smoke Tests",
+            "label": "Run Tests",
             "type": "shell",
             "command": "${workspaceFolder}/.venv/Scripts/python.exe",
             "args": [
-                "smoke_test.py"
+                "-m",
+                "pytest"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

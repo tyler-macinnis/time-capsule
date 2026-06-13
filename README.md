@@ -124,13 +124,13 @@ The workflow then:
 
 - verifies the version is `x.y.z` and matches `VERSION` in the app,
 - fails if there is no matching `CHANGELOG.md` entry,
-- runs the smoke tests,
+- runs the unit test suite (`python -m pytest`),
 - builds the portable executable and the Inno Setup installer, and
 - publishes a GitHub Release with `TimeCapsule-Setup-<version>.exe` and
   `Time.Capsule.<version>.portable.exe` attached.
 
 If any check fails, fix the version or changelog, push, and re-run the workflow
-(or delete and re-push the tag). Every push to `main` is also smoke-tested and
+(or delete and re-push the tag). Every push to `main` is also tested and
 built by [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
 ## Attribution

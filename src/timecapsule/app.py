@@ -31,7 +31,7 @@ class TimeCapsuleApp:
         self.state = AppState()
         self.tab_index = 0
 
-        page.title = APP_NAME
+        page.title = f"{APP_NAME} v{VERSION}"
         page.window.min_width = 760
         page.window.min_height = 560
         icon = res_path("time.ico")
@@ -85,7 +85,18 @@ class TimeCapsuleApp:
 
         page.appbar = ft.AppBar(
             leading=ft.Icon(ft.Icons.HOURGLASS_TOP, color=accent()),
-            title=ft.Text(APP_NAME, weight=ft.FontWeight.BOLD),
+            title=ft.Row(
+                [
+                    ft.Text(APP_NAME, weight=ft.FontWeight.BOLD),
+                    ft.Text(
+                        f"v{VERSION}",
+                        size=11,
+                        color=ft.Colors.ON_SURFACE_VARIANT,
+                    ),
+                ],
+                spacing=8,
+                vertical_alignment=ft.CrossAxisAlignment.END,
+            ),
             center_title=False,
             actions=[
                 self.search_field,
@@ -214,7 +225,9 @@ class TimeCapsuleApp:
                 ft.TextButton("Keep it", on_click=lambda _: self.page.pop_dialog()),
                 ft.FilledButton(
                     "Delete",
-                    style=ft.ButtonStyle(bgcolor=ft.Colors.ERROR, color=ft.Colors.ON_ERROR),
+                    style=ft.ButtonStyle(
+                        bgcolor=ft.Colors.ERROR, color=ft.Colors.ON_ERROR
+                    ),
                     on_click=lambda _: self._delete_memory(memory),
                 ),
             ],
@@ -329,7 +342,9 @@ class TimeCapsuleApp:
             return
         if added:
             self.refresh()
-        self._snack(f"Imported {added} memories" + (f", skipped {skipped}" if skipped else ""))
+        self._snack(
+            f"Imported {added} memories" + (f", skipped {skipped}" if skipped else "")
+        )
 
 
 def _parse_csv_date(raw: str) -> date | None:

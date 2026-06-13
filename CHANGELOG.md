@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-06-12
+
+### Added in 3.2.0
+
+- The app version is shown in the window titlebar and next to the app name in
+  the app bar.
+
+### Fixed in 3.2.0
+
+- Timeline memory cards render again. A layout bug (stretched rows inside the
+  scrolling list) made every card invisible, leaving only the year headers.
+
+### Changed in 3.2.0
+
+- The timeline is redesigned as a vertical timeline: a continuous rail with a
+  category-colored dot per memory, accent-tinted year pills, and month
+  markers between entries.
+- Searching now shows how many memories matched, and a dedicated
+  "no matches" state when nothing does.
+- The smoke test script is replaced by a full pytest unit test suite
+  (`tests/`) covering storage, models, state, date utilities, update checks,
+  theming, and headless construction of every view.
+
 ## [3.1.0] - 2026-06-12
 
 ### Added in 3.1.0
