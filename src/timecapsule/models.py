@@ -24,7 +24,7 @@ class Memory:
         notes: str = "",
         category: str = "",
         photos: list[str] | None = None,
-    ) -> "Memory":
+    ) -> Memory:
         return Memory(
             id=uuid.uuid4().hex,
             title=title,

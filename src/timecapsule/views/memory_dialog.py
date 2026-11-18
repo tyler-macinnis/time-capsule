@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from datetime import date, datetime
-from typing import Callable
 
 import flet as ft
 
@@ -74,6 +74,7 @@ class MemoryDialog:
             on_click=self._pick_date,
         )
         self.photo_row = ft.Row(wrap=True, spacing=8)
+        self.photo_error = ft.Text(color=ft.Colors.ERROR, size=12, visible=False)
         self._rebuild_photo_row()
 
         actions = [
@@ -111,6 +112,7 @@ class MemoryDialog:
                                 ),
                             ]
                         ),
+                        self.photo_error,
                         self.photo_row,
                     ],
                     tight=True,
@@ -128,7 +130,11 @@ class MemoryDialog:
 
     def _category_options(self) -> list[ft.dropdown.Option]:
         opts = [ft.dropdown.Option(key="", text="(none)")]
-        for name in sorted(self.state.categories):
+        names = set(self.state.categories)
+        if self.memory and self.memory.category:
+            # e.g. restored from a hand-edited backup without that category
+            names.add(self.memory.category)
+        for name in sorted(names):
             opts.append(ft.dropdown.Option(key=name, text=name))
         return opts
 
@@ -187,6 +193,7 @@ class MemoryDialog:
             allow_multiple=True,
             file_type=ft.FilePickerFileType.IMAGE,
         )
+        failed = []
         for f in files or []:
             if not f.path:
                 continue
@@ -194,8 +201,14 @@ class MemoryDialog:
             if name:
                 self.photos.append(name)
                 self.added_photos.append(name)
+            else:
+                failed.append(f.name)
+        self.photo_error.value = (
+            "Couldn't read: " + ", ".join(failed) + " (try JPEG or PNG)"
+        )
+        self.photo_error.visible = bool(failed)
         self._rebuild_photo_row()
-        self.photo_row.update()
+        self.dialog.update()
 
     def _remove_photo(self, name: str) -> None:
         self.photos.remove(name)
@@ -215,8 +228,6 @@ class MemoryDialog:
             self.title_field.error = "A title is required"
             self.title_field.update()
             return
-        for name in self.removed_photos:
-            storage.delete_photo(name)
         if self.memory:
             self.memory.title = title
             self.memory.day = self.day
@@ -234,6 +245,9 @@ class MemoryDialog:
                     photos=self.photos,
                 )
             )
+        # Only after the DB write succeeds, so a failed save loses nothing.
+        for name in self.removed_photos:
+            storage.delete_photo(name)
         self._close()
         self.on_change()
 

@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import dataclasses
+import json
 import os
 import shutil
 import sqlite3
 import sys
 import uuid
+import zipfile
 from datetime import date
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 from .models import Memory
 
@@ -23,8 +26,10 @@ def _default_app_dir() -> str:
 
 
 APP_DIR = _default_app_dir()
-DB_FILE = os.path.join(APP_DIR, "timecapsule.db")
-PHOTOS_DIR = os.path.join(APP_DIR, "photos")
+DB_NAME = "timecapsule.db"
+PHOTOS_NAME = "photos"
+DB_FILE = os.path.join(APP_DIR, DB_NAME)
+PHOTOS_DIR = os.path.join(APP_DIR, PHOTOS_NAME)
 THUMBS_DIR = os.path.join(PHOTOS_DIR, "thumbs")
 
 # Bundled resources (res/ at the repo root in dev, _MEIPASS when frozen)
@@ -162,6 +167,43 @@ class Database:
                 [(name, memory.id, i) for i, name in enumerate(memory.photos)],
             )
 
+    def replace_all(
+        self,
+        memories: list[Memory],
+        categories: dict[str, str],
+        settings: dict[str, str],
+    ) -> None:
+        """Swap the entire contents for the given data, in one transaction."""
+        with self._conn:
+            for table in ("memories", "categories", "settings"):
+                self._conn.execute(f"DELETE FROM {table}")
+            self._conn.executemany(
+                "INSERT INTO memories (id, title, day, notes, category, created_at)"
+                " VALUES (?, ?, ?, ?, ?, ?)",
+                [
+                    (
+                        m.id,
+                        m.title,
+                        m.day.isoformat(),
+                        m.notes,
+                        m.category,
+                        m.created_at,
+                    )
+                    for m in memories
+                ],
+            )
+            self._conn.executemany(
+                "INSERT INTO photos (name, memory_id, position) VALUES (?, ?, ?)",
+                [(n, m.id, i) for m in memories for i, n in enumerate(m.photos)],
+            )
+            self._conn.executemany(
+                "INSERT INTO categories (name, color) VALUES (?, ?)",
+                categories.items(),
+            )
+            self._conn.executemany(
+                "INSERT INTO settings (key, value) VALUES (?, ?)", settings.items()
+            )
+
     def delete_memory(self, memory_id: str) -> None:
         with self._conn:
             self._conn.execute("DELETE FROM memories WHERE id = ?", (memory_id,))
@@ -221,11 +263,13 @@ def import_photo(source_path: str) -> str | None:
     try:
         shutil.copyfile(source_path, dest)
         with Image.open(dest) as img:
+            # Phone photos store rotation in EXIF; bake it in, since the
+            # JPEG thumbnail is saved without that metadata.
+            img = ImageOps.exif_transpose(img)
             img.thumbnail(THUMB_SIZE)
             img.convert("RGB").save(thumb_path(name), "JPEG", quality=85)
-    except (OSError, ValueError):
-        if os.path.exists(dest):
-            os.remove(dest)
+    except (OSError, ValueError, Image.DecompressionBombError):
+        delete_photo(name)
         return None
     return name
 
@@ -244,3 +288,98 @@ def delete_photo(name: str) -> None:
             os.remove(path)
         except OSError:
             pass
+
+
+# ---------------------------------------------------------------- backup
+
+BACKUP_JSON = "backup.json"
+BACKUP_FORMAT = 1
+
+
+class BackupError(Exception):
+    """The chosen file is not a usable Time Capsule backup."""
+
+
+def create_backup(dest: str) -> None:
+    """Write a zip at `dest`: backup.json (all data, readable) plus photos/.
+
+    Opens its own connection, so it is safe to call from a worker thread.
+    """
+    db = Database()
+    try:
+        data = {
+            "format": BACKUP_FORMAT,
+            "memories": [
+                {**dataclasses.asdict(m), "day": m.day.isoformat()}
+                for m in sorted(db.list_memories(), key=lambda m: m.day)
+            ],
+            "categories": db.categories(),
+            "settings": db.get_settings(),
+        }
+    finally:
+        db.close()
+    # Stored, not deflated: photos are already compressed.
+    with zipfile.ZipFile(dest, "w") as zf:
+        zf.writestr(
+            BACKUP_JSON,
+            json.dumps(data, indent=2, ensure_ascii=False),
+            compress_type=zipfile.ZIP_DEFLATED,
+        )
+        for root, _, files in os.walk(PHOTOS_DIR):
+            for name in files:
+                path = os.path.join(root, name)
+                zf.write(path, os.path.relpath(path, APP_DIR).replace(os.sep, "/"))
+
+
+def restore_backup(source: str) -> None:
+    """Replace the database and all photos with the contents of a backup.
+
+    The caller must close its Database first. Raises BackupError, leaving
+    current data untouched, if `source` is not a valid backup.
+    """
+    staging = os.path.join(APP_DIR, "restore.tmp")  # same drive, so moves are renames
+    shutil.rmtree(staging, ignore_errors=True)
+    try:
+        try:
+            with zipfile.ZipFile(source) as zf:
+                data = json.loads(zf.read(BACKUP_JSON))
+                if data["format"] != BACKUP_FORMAT:
+                    raise ValueError(f"unsupported backup format {data['format']!r}")
+                memories = [
+                    Memory(**{**m, "day": date.fromisoformat(m["day"])})
+                    for m in data["memories"]
+                ]
+                # Only our own layout; extractall() itself strips ".." and drives.
+                zf.extractall(
+                    staging,
+                    [n for n in zf.namelist() if n.startswith(PHOTOS_NAME + "/")],
+                )
+            # Build the new database in staging so bad data fails before the swap.
+            staged = Database(os.path.join(staging, DB_NAME))
+            try:
+                staged.replace_all(memories, data["categories"], data["settings"])
+            finally:
+                staged.close()
+        except (
+            zipfile.BadZipFile,
+            sqlite3.Error,
+            OSError,
+            KeyError,  # includes backup.json missing from the zip
+            TypeError,
+            ValueError,  # includes malformed JSON and bad dates
+            AttributeError,
+        ) as exc:
+            raise BackupError(str(exc)) from exc
+
+        # shortcut: not atomic, a crash between here and the last move leaves
+        # partial data; move the old files aside first if that ever bites.
+        for suffix in ("", "-wal", "-shm"):
+            if os.path.exists(DB_FILE + suffix):
+                os.remove(DB_FILE + suffix)
+        shutil.rmtree(PHOTOS_DIR, ignore_errors=True)
+        shutil.move(os.path.join(staging, DB_NAME), DB_FILE)
+        staged_photos = os.path.join(staging, PHOTOS_NAME)
+        if os.path.isdir(staged_photos):
+            shutil.move(staged_photos, PHOTOS_DIR)
+    finally:
+        shutil.rmtree(staging, ignore_errors=True)

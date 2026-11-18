@@ -22,10 +22,10 @@ migrate old data**.
 
 Your old data is not lost — it is still next to the old executable:
 
-1. If you exported a CSV with the old version, use
-   **⋮ menu → Import from CSV** to bring memories back in.
-2. Otherwise, open the old `memories.json` in a text editor — every memory's
-   title, date, notes, and category are readable there — and re-enter them.
+Open the old `memories.json` (or a CSV you exported from the old version) in
+a text editor or spreadsheet. Every memory's title, date, notes, and category
+are readable there; re-enter them in the app. CSV import was removed after
+3.2.0, so install 3.2.0 first if you have a large CSV to bring in.
 
 ## Memories disappeared (no upgrade involved)
 
@@ -39,13 +39,19 @@ Your old data is not lost — it is still next to the old executable:
 
 ## Backing up
 
-Copy the whole `%APPDATA%\TimeCapsule` folder somewhere safe (cloud drive,
-USB stick). That single folder contains the database and all photos.
+Use **⋮ menu → Back up everything**. It saves a single `.zip` with all
+photos plus `backup.json`, a readable text file of every memory, category,
+and setting; keep it somewhere safe (cloud drive, USB stick).
 
-For an extra plain-text safety net, use **⋮ menu → Export to CSV**
-periodically. CSV files do not include photos.
+If the app will not start, copy the whole `%APPDATA%\TimeCapsule` folder
+instead. That folder contains the database and all photos.
 
 ## Restoring a backup
+
+Use **⋮ menu → Restore from backup** and pick the `.zip`. This replaces
+everything currently in the app.
+
+To restore a folder you copied by hand:
 
 1. Close Time Capsule.
 2. Copy your backed-up `TimeCapsule` folder back to `%APPDATA%`, replacing

@@ -183,3 +183,15 @@ def test_delete_photo_missing_files_is_noop():
 def test_thumb_path_always_jpg():
     assert storage.thumb_path("abc.png").endswith("abc.jpg")
     assert storage.thumb_path("abc.jpeg").endswith("abc.jpg")
+
+
+def test_thumbnail_respects_exif_orientation(tmp_path):
+    src = tmp_path / "rotated.jpg"
+    exif = Image.Exif()
+    exif[0x0112] = 6  # "rotate 90 degrees" as phones write portrait shots
+    Image.new("RGB", (800, 600)).save(src, "JPEG", exif=exif)
+
+    name = storage.import_photo(str(src))
+
+    with Image.open(storage.thumb_path(name)) as thumb:
+        assert thumb.height > thumb.width

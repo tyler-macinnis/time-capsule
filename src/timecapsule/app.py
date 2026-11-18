@@ -1,16 +1,16 @@
-"""Application shell: navigation, search, CSV, updates, and wiring."""
+"""Application shell: navigation, search, backup, updates, and wiring."""
 
 from __future__ import annotations
 
 import asyncio
-import csv
 import os
+import sqlite3
 import webbrowser
-from datetime import date, datetime
+from datetime import date
 
 import flet as ft
 
-from . import APP_NAME, VERSION, updates
+from . import APP_NAME, VERSION, storage, updates
 from .models import Memory
 from .state import AppState
 from .storage import res_path
@@ -21,8 +21,6 @@ from .views.on_this_day import build_banner, maybe_show_dialog
 from .views.stats import build_stats
 from .views.theme_dialog import ThemeDialog
 from .views.timeline import build_timeline
-
-CSV_FIELDS = ["Title", "Date", "Notes", "Category"]
 
 
 class TimeCapsuleApp:
@@ -37,13 +35,7 @@ class TimeCapsuleApp:
         icon = res_path("time.ico")
         if os.path.exists(icon):
             page.window.icon = icon
-        set_accent(self.state.settings.get("accent", accent()))
-        apply_theme(page)
-        page.theme_mode = (
-            ft.ThemeMode.LIGHT
-            if self.state.settings.get("theme_mode") == "light"
-            else ft.ThemeMode.DARK
-        )
+        self._apply_settings()
 
         self.file_picker = ft.FilePicker()
         page.services.append(self.file_picker)
@@ -128,14 +120,14 @@ class TimeCapsuleApp:
                             on_click=self._manual_update_check,
                         ),
                         ft.PopupMenuItem(
-                            content="Export to CSV",
-                            icon=ft.Icons.UPLOAD_FILE,
-                            on_click=self._export_csv,
+                            content="Back up everything",
+                            icon=ft.Icons.BACKUP_OUTLINED,
+                            on_click=self._backup,
                         ),
                         ft.PopupMenuItem(
-                            content="Import from CSV",
-                            icon=ft.Icons.DOWNLOAD,
-                            on_click=self._import_csv,
+                            content="Restore from backup",
+                            icon=ft.Icons.RESTORE,
+                            on_click=self._restore,
                         ),
                         ft.PopupMenuItem(),
                         ft.PopupMenuItem(
@@ -166,6 +158,16 @@ class TimeCapsuleApp:
         maybe_show_dialog(page, self.state)
         if self.state.settings.get("update_check", "on") != "off":
             page.run_task(self._startup_update_check)
+
+    def _apply_settings(self) -> None:
+        """Apply the stored accent and light/dark mode to the page."""
+        set_accent(self.state.settings.get("accent", ""))  # invalid -> default
+        apply_theme(self.page)
+        self.page.theme_mode = (
+            ft.ThemeMode.LIGHT
+            if self.state.settings.get("theme_mode") == "light"
+            else ft.ThemeMode.DARK
+        )
 
     # ------------------------------------------------------------ rendering
 
@@ -293,68 +295,71 @@ class TimeCapsuleApp:
         )
         self.page.show_dialog(dlg)
 
-    # ------------------------------------------------------------------ CSV
+    # --------------------------------------------------------------- backup
 
-    async def _export_csv(self) -> None:
+    async def _backup(self) -> None:
         path = await self.file_picker.save_file(
-            dialog_title="Export memories",
-            file_name="memories_export.csv",
-            allowed_extensions=["csv"],
+            dialog_title="Back up everything",
+            file_name=f"time-capsule-backup-{date.today().isoformat()}.zip",
+            allowed_extensions=["zip"],
         )
         if not path:
             return
-        if not path.lower().endswith(".csv"):
-            path += ".csv"
-        with open(path, "w", newline="", encoding="utf-8") as fh:
-            writer = csv.writer(fh)
-            writer.writerow(CSV_FIELDS)
-            for m in sorted(self.state.memories, key=lambda m: m.day):
-                writer.writerow([m.title, m.day.isoformat(), m.notes, m.category])
-        self._snack(f"Exported {len(self.state.memories)} memories")
+        if not path.lower().endswith(".zip"):
+            path += ".zip"
+        self._snack("Backing up…")
+        try:
+            await asyncio.to_thread(storage.create_backup, path)
+        except (OSError, sqlite3.Error):
+            self._snack("Could not write the backup file")
+            return
+        self._snack("Backup saved, including photos")
 
-    async def _import_csv(self) -> None:
+    async def _restore(self) -> None:
         files = await self.file_picker.pick_files(
-            dialog_title="Import memories",
-            allowed_extensions=["csv"],
+            dialog_title="Restore from backup",
+            allowed_extensions=["zip"],
         )
         if not files or not files[0].path:
             return
-        added = skipped = 0
-        try:
-            with open(files[0].path, "r", newline="", encoding="utf-8-sig") as fh:
-                for row in csv.DictReader(fh):
-                    title = (row.get("Title") or row.get("Event") or "").strip()
-                    day = _parse_csv_date(row.get("Date", ""))
-                    if not title or day is None:
-                        skipped += 1
-                        continue
-                    self.state.add(
-                        Memory.new(
-                            title=title,
-                            day=day,
-                            notes=(row.get("Notes") or "").strip(),
-                            category=(row.get("Category") or "").strip(),
-                        )
-                    )
-                    added += 1
-        except (OSError, csv.Error):
-            self._snack("Could not read that CSV file")
-            return
-        if added:
-            self.refresh()
-        self._snack(
-            f"Imported {added} memories" + (f", skipped {skipped}" if skipped else "")
+        path = files[0].path
+        confirm = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Restore this backup?"),
+            content=ft.Text(
+                "Everything currently in Time Capsule (memories, photos, "
+                "categories, and settings) will be replaced by the backup. "
+                "This cannot be undone."
+            ),
+            actions=[
+                ft.TextButton("Cancel", on_click=lambda _: self.page.pop_dialog()),
+                ft.FilledButton(
+                    "Replace everything",
+                    style=ft.ButtonStyle(
+                        bgcolor=ft.Colors.ERROR, color=ft.Colors.ON_ERROR
+                    ),
+                    on_click=lambda _: self._do_restore(path),
+                ),
+            ],
         )
+        self.page.show_dialog(confirm)
 
-
-def _parse_csv_date(raw: str) -> date | None:
-    raw = raw.strip()
-    for fmt in ("%Y-%m-%d", "%m-%d-%Y", "%m/%d/%Y"):
+    def _do_restore(self, path: str) -> None:
+        self.page.pop_dialog()
+        # Deliberately synchronous: no other handler can touch the closed DB.
+        self.state.db.close()
         try:
-            return datetime.strptime(raw, fmt).date()
-        except ValueError:
-            continue
-    return None
+            storage.restore_backup(path)
+            message = "Backup restored"
+        except storage.BackupError:
+            message = "That file is not a Time Capsule backup; nothing was changed"
+        except OSError:
+            message = "Restore failed partway; try restoring the backup again"
+        self.state = AppState()
+        self.state.search = self.search_field.value or ""
+        self._apply_settings()
+        self._on_theme_change()
+        self._snack(message)
 
 
 def main(page: ft.Page) -> None:

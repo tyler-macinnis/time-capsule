@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-11-17
+
+### Added in 3.3.0
+
+- **Back up everything** and **Restore from backup** in the ⋮ menu. A backup
+  is a single `.zip` holding every photo plus `backup.json`, a readable
+  text file of all memories, categories, and settings. Restoring replaces
+  all current data after a confirmation, and a file that is not a valid
+  backup is rejected without changing anything.
+
+### Removed in 3.3.0
+
+- **Export to CSV** and **Import from CSV**. The zip backup replaces them:
+  it is just as readable outside the app and also carries photos,
+  categories, and settings. To bring an old CSV in, import it with 3.2.0
+  before upgrading.
+
+### Fixed in 3.3.0
+
+- Thumbnails of phone photos are no longer sideways: the rotation stored in
+  the photo's EXIF data is now applied when the thumbnail is made. Existing
+  thumbnails are not regenerated.
+- Editing a memory whose category no longer exists keeps that category in
+  the dropdown instead of dropping it.
+- Photo files are now deleted only after the database change succeeds.
+
+### Changed in 3.3.0
+
+- Photos that cannot be read (e.g. HEIC) are named in the memory dialog
+  instead of being dropped silently.
+
 ## [3.2.0] - 2026-06-12
 
 ### Added in 3.2.0
