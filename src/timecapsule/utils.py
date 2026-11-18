@@ -63,9 +63,7 @@ def on_this_day(memories: list[Memory], today: date | None = None) -> list[Memor
         if m.day.year >= today.year:
             continue
         md = (m.day.month, m.day.day)
-        if md == (today.month, today.day):
-            matches.append(m)
-        elif (
+        if md == (today.month, today.day) or (
             md == (2, 29)
             and (today.month, today.day) == (3, 1)
             and not _is_leap(today.year)

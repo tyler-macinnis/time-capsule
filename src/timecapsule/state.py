@@ -49,10 +49,10 @@ class AppState:
         self.db.upsert_memory(memory)
 
     def remove(self, memory: Memory) -> None:
+        self.db.delete_memory(memory.id)
+        self.memories = [m for m in self.memories if m.id != memory.id]
         for photo in memory.photos:
             storage.delete_photo(photo)
-        self.memories = [m for m in self.memories if m.id != memory.id]
-        self.db.delete_memory(memory.id)
 
     def set_category(self, name: str, color: str) -> None:
         self.categories[name] = color

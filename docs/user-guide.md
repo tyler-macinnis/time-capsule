@@ -86,21 +86,21 @@ The Stats view shows:
 - memories by category,
 - the next five upcoming anniversaries with how long ago each event occurred.
 
-## CSV export and import
+## Backup and restore
 
-- **⋮ menu → Export to CSV** writes all memories (title, date, notes,
-  category) to a file of your choice — a handy plain-text backup.
-- **⋮ menu → Import from CSV** reads them back. Expected columns:
+- **⋮ menu → Back up everything** saves one `.zip` file containing all your
+  memories, categories, settings, and photos. Keep it somewhere safe (cloud
+  drive, USB stick).
+- **⋮ menu → Restore from backup** loads such a file. It **replaces
+  everything** currently in the app, so you are asked to confirm first. Use
+  it to move to a new computer or recover after a problem.
 
-  | Column | Required | Format |
-  | --- | --- | --- |
-  | Title | yes | any text |
-  | Date | yes | `YYYY-MM-DD`, `MM-DD-YYYY`, or `MM/DD/YYYY` |
-  | Notes | no | any text |
-  | Category | no | category name |
+The zip is deliberately simple, so your memories stay readable without the
+app: a `photos` folder with the original images, and `backup.json`, a plain
+text file listing every memory (title, date, notes, category, photo file
+names) along with your categories and settings.
 
-Photos are not included in CSV files; back them up by copying the photos
-folder (see below).
+CSV export and import were removed in favor of this format.
 
 ## Appearance
 
@@ -125,5 +125,4 @@ before launching the app. See the
 
 > **Note for upgraders**: versions before 3.0.0 stored data in JSON files next
 > to the executable. 3.0.0 starts fresh and does not read those files —
-> re-enter your memories or import them from a CSV export made with the old
-> version.
+> re-enter your memories by hand.

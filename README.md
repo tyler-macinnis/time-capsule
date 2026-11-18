@@ -17,7 +17,8 @@ dashboard.
 - **Stats** — days of history, memories by category, upcoming anniversaries
 - **On This Day** — a surprise greeting when a memory's anniversary is today
 - **Photos** — attach any number of pictures to a memory; thumbnails are generated automatically
-- **CSV** — export and import memories with proper file dialogs
+- **Backup** — one-file backup and restore of everything: a zip with your
+  photos and a readable `backup.json`
 - **SQLite storage** — all data in a per-user database under `%APPDATA%\TimeCapsule`
 - **Installer & updates** — per-user Inno Setup installer (no admin) and a built-in
   update check against GitHub releases

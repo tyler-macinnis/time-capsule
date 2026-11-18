@@ -217,3 +217,17 @@ def test_banner_lists_on_this_day_matches(state, make_memory):
     all_text = texts(banner)
     assert "On this day" in all_text
     assert "Two years ago" in all_text
+
+
+# ------------------------------------------------------------ memory dialog
+
+
+def test_memory_dialog_offers_unknown_current_category(state, make_memory):
+    from types import SimpleNamespace
+
+    from timecapsule.views.memory_dialog import MemoryDialog
+
+    memory = make_memory(category="Imported")
+    dlg = MemoryDialog(SimpleNamespace(services=[]), state, memory, lambda: None)
+
+    assert "Imported" in [o.key for o in dlg.category_dd.options]

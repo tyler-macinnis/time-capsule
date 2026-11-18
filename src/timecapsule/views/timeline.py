@@ -12,7 +12,7 @@ has unbounded height and breaks rendering of the whole list.
 from __future__ import annotations
 
 import os
-from typing import Callable
+from collections.abc import Callable
 
 import flet as ft
 
