@@ -7,7 +7,7 @@ from datetime import date
 import flet as ft
 
 from ..state import AppState
-from ..theme import GOLD, accent, category_color
+from ..theme import accent, category_color, highlight
 from ..utils import time_since, upcoming_anniversaries
 
 
@@ -52,7 +52,7 @@ def build_stats(state: AppState) -> ft.Control:
     total_photos = sum(len(m.photos) for m in state.memories)
     cards = [
         _stat_card(ft.Icons.AUTO_STORIES, "Memories", str(len(state.memories))),
-        _stat_card(ft.Icons.PHOTO_CAMERA, "Photos", str(total_photos), GOLD),
+        _stat_card(ft.Icons.PHOTO_CAMERA, "Photos", str(total_photos), highlight()),
     ]
     if state.memories:
         first = min(m.day for m in state.memories)

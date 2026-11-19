@@ -14,7 +14,7 @@ from . import APP_NAME, VERSION, storage, updates
 from .models import Memory
 from .state import AppState
 from .storage import res_path
-from .theme import accent, apply_theme, set_accent
+from .theme import accent, apply_theme, set_accent, set_highlight, theme_mode
 from .views.gallery import build_gallery
 from .views.memory_dialog import CategoryManager, MemoryDialog
 from .views.on_this_day import build_banner, maybe_show_dialog
@@ -162,12 +162,9 @@ class TimeCapsuleApp:
     def _apply_settings(self) -> None:
         """Apply the stored accent and light/dark mode to the page."""
         set_accent(self.state.settings.get("accent", ""))  # invalid -> default
+        set_highlight(self.state.settings.get("highlight", ""))
         apply_theme(self.page)
-        self.page.theme_mode = (
-            ft.ThemeMode.LIGHT
-            if self.state.settings.get("theme_mode") == "light"
-            else ft.ThemeMode.DARK
-        )
+        self.page.theme_mode = theme_mode(self.state.settings.get("theme_mode"))
 
     # ------------------------------------------------------------ rendering
 
@@ -202,9 +199,7 @@ class TimeCapsuleApp:
     def _toggle_theme(self, _) -> None:
         mode = "light" if self.page.theme_mode == ft.ThemeMode.DARK else "dark"
         self.state.set_setting("theme_mode", mode)
-        self.page.theme_mode = (
-            ft.ThemeMode.LIGHT if mode == "light" else ft.ThemeMode.DARK
-        )
+        self.page.theme_mode = theme_mode(mode)
         self.page.update()
 
     def _on_theme_change(self) -> None:
@@ -245,9 +240,18 @@ class TimeCapsuleApp:
     def _about(self) -> None:
         dlg = ft.AlertDialog(
             title=ft.Text(f"{APP_NAME} v{VERSION}"),
-            content=ft.Text(
-                "A memory journal for the moments that matter.\n\n"
-                "Made with love. Icon by Pixel Perfect from Flaticon."
+            content=ft.Column(
+                [
+                    ft.Image(src=res_path("time.png"), width=96, height=96),
+                    ft.Text(
+                        "A memory journal for the moments that matter.\n\n"
+                        "Made with love.",
+                        text_align=ft.TextAlign.CENTER,
+                    ),
+                ],
+                tight=True,
+                spacing=16,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             ),
             actions=[ft.TextButton("Close", on_click=lambda _: self.page.pop_dialog())],
         )

@@ -10,7 +10,7 @@ import flet as ft
 from .. import storage
 from ..models import Memory
 from ..state import AppState
-from ..theme import accent
+from ..theme import accent, highlight
 from ..utils import on_this_day, years_ago_text
 
 
@@ -26,7 +26,7 @@ def build_banner(
     rows: list[ft.Control] = [
         ft.Row(
             [
-                ft.Icon(ft.Icons.AUTO_AWESOME, color=accent()),
+                ft.Icon(ft.Icons.AUTO_AWESOME, color=highlight()),
                 ft.Text("On this day", size=16, weight=ft.FontWeight.BOLD),
             ],
             spacing=8,
@@ -116,7 +116,7 @@ def maybe_show_dialog(page: ft.Page, state: AppState) -> None:
 
     dlg = ft.AlertDialog(
         title=ft.Row(
-            [ft.Icon(ft.Icons.AUTO_AWESOME, color=accent()), ft.Text("On this day…")],
+            [ft.Icon(ft.Icons.AUTO_AWESOME, color=highlight()), ft.Text("On this day…")],
             spacing=8,
         ),
         content=ft.Container(

@@ -1,4 +1,4 @@
-"""Appearance dialog: theme presets, custom accent color, light/dark mode."""
+"""Appearance dialog: accent and highlight colors, light/dark/system mode."""
 
 from __future__ import annotations
 
@@ -7,17 +7,39 @@ from collections.abc import Callable
 import flet as ft
 
 from ..state import AppState
-from ..theme import PRESETS, accent, apply_theme, is_valid_hex, set_accent
+from ..theme import (
+    DEFAULT_ACCENT,
+    GOLD,
+    PRESETS,
+    accent,
+    apply_theme,
+    highlight,
+    is_valid_hex,
+    set_accent,
+    set_highlight,
+    theme_mode,
+)
 
 
 class ThemeDialog:
-    """Lets the user pick a preset theme or enter a custom accent color."""
+    """Lets the user recolor the app from presets or custom hex colors."""
 
     def __init__(self, page: ft.Page, state: AppState, on_change: Callable[[], None]):
         self.page = page
         self.state = state
         self.on_change = on_change
+        self.target = "accent"  # which color the swatches and hex field edit
 
+        self.target_group = ft.RadioGroup(
+            value=self.target,
+            content=ft.Row(
+                [
+                    ft.Radio(value="accent", label="Accent"),
+                    ft.Radio(value="highlight", label="Highlight"),
+                ]
+            ),
+            on_change=self._target_changed,
+        )
         self.swatch_row = ft.Row(wrap=True, spacing=10)
         self.hex_field = ft.TextField(
             label="Custom color (hex)",
@@ -27,11 +49,12 @@ class ThemeDialog:
             on_submit=self._apply_hex,
         )
         self.mode_group = ft.RadioGroup(
-            value=self.state.settings.get("theme_mode", "dark"),
+            value=theme_mode(self.state.settings.get("theme_mode")).value,
             content=ft.Row(
                 [
                     ft.Radio(value="light", label="Light"),
                     ft.Radio(value="dark", label="Dark"),
+                    ft.Radio(value="system", label="System"),
                 ]
             ),
             on_change=self._mode_changed,
@@ -42,10 +65,11 @@ class ThemeDialog:
             modal=True,
             title=ft.Text("Appearance"),
             content=ft.Container(
-                width=420,
+                width=460,
                 content=ft.Column(
                     [
-                        ft.Text("Theme", weight=ft.FontWeight.BOLD),
+                        ft.Text("Color", weight=ft.FontWeight.BOLD),
+                        self.target_group,
                         self.swatch_row,
                         ft.Row(
                             [
@@ -60,18 +84,25 @@ class ThemeDialog:
                     ],
                     tight=True,
                     spacing=12,
+                    scroll=ft.ScrollMode.AUTO,
                 ),
             ),
-            actions=[ft.TextButton("Done", on_click=lambda _: self.page.pop_dialog())],
+            actions=[
+                ft.TextButton("Reset colors", on_click=self._reset),
+                ft.TextButton("Done", on_click=lambda _: self.page.pop_dialog()),
+            ],
         )
 
     def open(self) -> None:
         self.page.show_dialog(self.dialog)
 
+    def _current(self) -> str:
+        return accent() if self.target == "accent" else highlight()
+
     def _rebuild_swatches(self) -> None:
         tiles = []
         for name, color in PRESETS.items():
-            selected = color.lower() == accent().lower()
+            selected = color.lower() == self._current().lower()
             tiles.append(
                 ft.Column(
                     [
@@ -100,15 +131,33 @@ class ThemeDialog:
             )
         self.swatch_row.controls = tiles
 
-    def _set_color(self, color: str) -> None:
-        set_accent(color)
-        self.state.set_setting("accent", color)
+    def _refresh(self) -> None:
+        """Re-theme the page and re-sync the dialog after a color change."""
         apply_theme(self.page)
-        self.hex_field.value = color
+        self.hex_field.value = self._current()
         self.hex_field.error = None
         self._rebuild_swatches()
         self.dialog.update()
         self.on_change()
+
+    def _set_color(self, color: str) -> None:
+        (set_accent if self.target == "accent" else set_highlight)(color)
+        self.state.set_setting(self.target, color)
+        self._refresh()
+
+    def _reset(self, _) -> None:
+        set_accent(DEFAULT_ACCENT)
+        set_highlight(GOLD)
+        self.state.set_setting("accent", DEFAULT_ACCENT)
+        self.state.set_setting("highlight", GOLD)
+        self._refresh()
+
+    def _target_changed(self, e: ft.ControlEvent) -> None:
+        self.target = e.control.value
+        self.hex_field.value = self._current()
+        self.hex_field.error = None
+        self._rebuild_swatches()
+        self.dialog.update()
 
     def _apply_hex(self, _) -> None:
         raw = (self.hex_field.value or "").strip()
@@ -123,7 +172,5 @@ class ThemeDialog:
     def _mode_changed(self, e: ft.ControlEvent) -> None:
         mode = e.control.value
         self.state.set_setting("theme_mode", mode)
-        self.page.theme_mode = (
-            ft.ThemeMode.LIGHT if mode == "light" else ft.ThemeMode.DARK
-        )
+        self.page.theme_mode = theme_mode(mode)
         self.page.update()

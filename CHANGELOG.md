@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-11-18
+
+### Added in 3.4.0
+
+- **Highlight color** in Appearance: a second customizable color, used for
+  the "On this day" sparkle and the Photos stat.
+- Eight more color presets (sixteen in total), usable for either color.
+- **System** mode, which follows the Windows light/dark setting.
+- **Reset colors** button in Appearance.
+- Screenshots and badges in the README.
+
+### Changed in 3.4.0
+
+- New app icon: an hourglass with gold sand inside a rose-capped glass
+  lantern, on a light tile. It is used for the window, the executable, the
+  installer, and the About dialog.
+
 ## [3.3.0] - 2026-11-17
 
 ### Added in 3.3.0

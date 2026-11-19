@@ -21,9 +21,18 @@ PRESETS: dict[str, str] = {
     "Gold": "#FFB300",
     "Plum": "#8E24AA",
     "Slate": "#546E7A",
+    "Crimson": "#D32F2F",
+    "Coral": "#FF7043",
+    "Lime": "#9E9D24",
+    "Mint": "#26A69A",
+    "Teal": "#00838F",
+    "Sky": "#42A5F5",
+    "Indigo": "#3F51B5",
+    "Mocha": "#795548",
 }
 
 _accent = DEFAULT_ACCENT
+_highlight = GOLD
 
 
 def accent() -> str:
@@ -36,8 +45,26 @@ def set_accent(color: str) -> None:
     _accent = color if is_valid_hex(color) else DEFAULT_ACCENT
 
 
+def highlight() -> str:
+    """The current highlight color (hex): the secondary pop of color."""
+    return _highlight
+
+
+def set_highlight(color: str) -> None:
+    global _highlight
+    _highlight = color if is_valid_hex(color) else GOLD
+
+
 def is_valid_hex(color: str) -> bool:
     return bool(re.fullmatch(r"#[0-9A-Fa-f]{6}", color or ""))
+
+
+def theme_mode(name: str | None) -> ft.ThemeMode:
+    """The stored mode setting ("light", "dark", "system"); anything else is dark."""
+    try:
+        return ft.ThemeMode(name)
+    except ValueError:
+        return ft.ThemeMode.DARK
 
 
 def apply_theme(page: ft.Page) -> None:

@@ -1,27 +1,50 @@
+<div align="center">
+
+<img src="res/time.png" alt="Time Capsule icon" width="96">
+
 # Time Capsule
 
-A memory journal for the moments that matter: a photo-rich timeline of any
-and all events, an "On This Day" greeting at every launch, and a stats
-dashboard.
+**A memory journal for the moments that matter.**
 
-## Documentation
+A photo-rich timeline of any and all events, an "On This Day" greeting at
+every launch, and a stats dashboard.
 
-- [User guide](docs/user-guide.md) — installing, updating, and using every feature
-- [Troubleshooting](docs/troubleshooting.md) — data locations, backup/restore, common fixes
+[![Latest release](https://img.shields.io/github/v/release/tyler-macinnis/time-capsule?color=E91E63)](https://github.com/tyler-macinnis/time-capsule/releases/latest)
+[![CI](https://github.com/tyler-macinnis/time-capsule/actions/workflows/ci.yml/badge.svg)](https://github.com/tyler-macinnis/time-capsule/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-FFB300)](LICENSE)
+![Python 3.14](https://img.shields.io/badge/python-3.14-0288D1?logo=python&logoColor=white)
+![Platform: Windows](https://img.shields.io/badge/platform-Windows-546E7A)
+
+[**Download**](https://github.com/tyler-macinnis/time-capsule/releases/latest) ·
+[User guide](docs/user-guide.md) ·
+[Troubleshooting](docs/troubleshooting.md) ·
+[Changelog](CHANGELOG.md)
+
+<img src="docs/images/timeline.png" alt="The timeline: memories grouped by year, with an On This Day banner" width="820">
+
+</div>
+
+## Screenshots
+
+| On This Day | Stats |
+| :---: | :---: |
+| ![A greeting dialog for a memory whose anniversary is today](docs/images/on-this-day.png) | ![Stats: totals, memories by category, upcoming anniversaries](docs/images/stats.png) |
+| **Appearance** | **Light mode, your colors** |
+| ![The Appearance dialog with sixteen color presets](docs/images/appearance.png) | ![The timeline in light mode with an Ocean accent](docs/images/timeline-light.png) |
 
 ## Features
 
-- **Timeline** — memories grouped by year with notes, categories, photos, "time since",
-  and edit/delete buttons on every card; memories can be dated anywhere — past or future
-- **Gallery** — every photo in one grid, with a full-size viewer
-- **Stats** — days of history, memories by category, upcoming anniversaries
-- **On This Day** — a surprise greeting when a memory's anniversary is today
-- **Photos** — attach any number of pictures to a memory; thumbnails are generated automatically
-- **Backup** — one-file backup and restore of everything: a zip with your
-  photos and a readable `backup.json`
-- **SQLite storage** — all data in a per-user database under `%APPDATA%\TimeCapsule`
-- **Installer & updates** — per-user Inno Setup installer (no admin) and a built-in
-  update check against GitHub releases
+| | | |
+| :---: | --- | --- |
+| 🕰️ | **Timeline** | Memories grouped by year with notes, categories, photos, "time since", and edit/delete buttons on every card; memories can be dated anywhere — past or future |
+| 🖼️ | **Gallery** | Every photo in one grid, with a full-size viewer |
+| 📊 | **Stats** | Days of history, memories by category, upcoming anniversaries |
+| ✨ | **On This Day** | A surprise greeting when a memory's anniversary is today |
+| 📷 | **Photos** | Attach any number of pictures to a memory; thumbnails are generated automatically |
+| 🎨 | **Appearance** | Sixteen color presets or any hex color for both the accent and the highlight, in light, dark, or follow-the-system mode |
+| 💾 | **Backup** | One-file backup and restore of everything: a zip with your photos and a readable `backup.json` |
+| 🗄️ | **SQLite storage** | All data in a per-user database under `%APPDATA%\TimeCapsule` |
+| 🚀 | **Installer & updates** | Per-user Inno Setup installer (no admin) and a built-in update check against GitHub releases |
 
 ## Installing (users)
 
@@ -133,7 +156,3 @@ The workflow then:
 If any check fails, fix the version or changelog, push, and re-run the workflow
 (or delete and re-push the tag). Every push to `main` is also tested and
 built by [.github/workflows/ci.yml](.github/workflows/ci.yml).
-
-## Attribution
-
-[Dose icons created by Pixel perfect - Flaticon](https://www.flaticon.com/free-icons/dose "dose icons")
