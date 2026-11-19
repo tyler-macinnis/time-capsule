@@ -62,3 +62,18 @@ def test_category_color_lookup_and_fallback():
     assert category_color(categories, "Us") == "#E91E63"
     assert category_color(categories, "Unknown") == FALLBACK_CATEGORY_COLOR
     assert category_color(categories, "") == FALLBACK_CATEGORY_COLOR
+
+
+def test_highlight_set_and_fallback():
+    theme.set_highlight("#0288D1")
+    assert theme.highlight() == "#0288D1"
+    theme.set_highlight("nope")
+    assert theme.highlight() == theme.GOLD
+
+
+@pytest.mark.parametrize(
+    ("name", "mode"),
+    [("light", "light"), ("dark", "dark"), ("system", "system"), (None, "dark"), ("x", "dark")],
+)
+def test_theme_mode_parses_setting(name, mode):
+    assert theme.theme_mode(name).value == mode

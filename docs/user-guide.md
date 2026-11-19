@@ -104,9 +104,14 @@ CSV export and import were removed in favor of this format.
 
 ## Appearance
 
-**⋮ menu → Appearance** offers eight theme presets and a custom hex accent
-color, plus a light/dark mode switch. The sun/moon button in the title bar
-toggles the mode quickly. All choices are remembered.
+**⋮ menu → Appearance** recolors the app. Choose **Accent** (buttons, year
+pills, the app's overall tint) or **Highlight** (the sparkle on "On this
+day" and the Photos stat), then pick one of sixteen presets or type any hex
+color. **Reset colors** restores the defaults.
+
+**Mode** is Light, Dark, or System (follow Windows). The sun/moon button in
+the title bar toggles light/dark quickly. All choices are remembered and
+included in backups.
 
 ## Where your data lives
 
